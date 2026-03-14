@@ -3,1243 +3,990 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>🍭 Candy Crush — ကစားမည်</title>
+<title>🍭 Candy Crush</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-
-<!-- ═══ AUDIO PRELOAD ═══ -->
-<audio id="aud-bg"      src="audio/bgmusic.mp3"                          loop preload="auto"></audio>
-<audio id="aud-swap"    src="audio/Switch_sound1.ogg.ogx"                preload="auto"></audio>
-<audio id="aud-invalid" src="audio/Negative_switch_sound1.ogg.ogx"       preload="auto"></audio>
-<audio id="aud-match"   src="audio/Candy_land4.ogg.ogx"                  preload="auto"></audio>
-<audio id="aud-combo"   src="audio/Combo_sound3.ogg.ogx"                 preload="auto"></audio>
-<audio id="aud-btn"     src="audio/Button_press.ogg.ogx"                 preload="auto"></audio>
-<audio id="aud-win"     src="audio/Win.ogg.ogx"                          preload="auto"></audio>
-<audio id="aud-lose"    src="audio/Lose.ogg.ogx"                         preload="auto"></audio>
-<audio id="aud-twarn"   src="audio/Time_warning.ogg.ogx"                 preload="auto"></audio>
-<audio id="aud-5sec"    src="audio/5_seconds_left_flash_version.wav"     preload="auto"></audio>
-<audio id="aud-strip"   src="audio/Striped_candy_created1.ogx"           preload="auto"></audio>
-
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{
-  --pink:#ff6eb4;--dpink:#e91e8c;--purple:#9b59b6;--dpurple:#6c3483;
-  --yellow:#ffd700;--orange:#ff8c00;--green:#00c853;--blue:#2196f3;
-  --white:#fff;
-}
+/* ════════════════════════════════════
+   BASE
+════════════════════════════════════ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;overflow:hidden;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;}
 body{
   font-family:'Nunito',sans-serif;
-  background:url('assets/background.jpg') center/cover no-repeat fixed;
-  min-height:100vh;position:relative;
+  background:#18002a url('assets/background.jpg') center/cover no-repeat;
+  position:relative;user-select:none;
 }
 body::before{
-  content:'';position:fixed;inset:0;z-index:0;
-  background:linear-gradient(160deg,rgba(180,0,120,.45)0%,rgba(80,0,100,.55)50%,rgba(30,0,80,.6)100%);
-  pointer-events:none;
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(160deg,rgba(175,0,115,.52)0%,rgba(65,0,95,.62)55%,rgba(15,0,55,.72)100%);
 }
 
-/* ─── LOADER ─── */
+/* ════ LOADER ════ */
 #ldr{
   position:fixed;inset:0;z-index:1000;
-  background:linear-gradient(135deg,#ff6eb4,#9b59b6);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  background:linear-gradient(135deg,#e91e8c,#7b1fa2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
   transition:opacity .4s;
 }
-#ldr .ldr-logo{font-size:3rem;}
-#ldr .ldr-title{font-size:1.6rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.3);}
-.ring{width:38px;height:38px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+.ldr-ic{font-size:3.5rem;animation:bounce .85s ease-in-out infinite alternate;}
+@keyframes bounce{from{transform:scale(1)}to{transform:scale(1.18)}}
+.ldr-tx{font-size:1.75rem;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);}
+.ring{width:36px;height:36px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ─── SCREENS ─── */
-#screen-search,#screen-game,#screen-result{
-  position:fixed;inset:0;z-index:1;display:none;
-  flex-direction:column;align-items:center;justify-content:center;padding:12px;
+/* ════ SCREENS ════ */
+.scr{
+  position:fixed;inset:0;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px 9px 6px;
+  visibility:hidden;opacity:0;pointer-events:none;
+  transition:opacity .28s ease,visibility .28s;
 }
-#screen-search.show,#screen-game.show,#screen-result.show{display:flex;}
+.scr.on{visibility:visible;opacity:1;pointer-events:auto;}
 
-/* ─── SEARCH ─── */
-#screen-search{gap:20px;}
-.search-card{
-  background:rgba(255,255,255,.15);backdrop-filter:blur(20px);
-  border:2px solid rgba(255,255,255,.3);border-radius:24px;
-  padding:30px 24px;text-align:center;width:100%;max-width:340px;
-  box-shadow:0 8px 40px rgba(0,0,0,.3);
+/* ════ SEARCH ════ */
+#s-search{justify-content:center;gap:16px;}
+.s-card{
+  background:rgba(255,255,255,.14);backdrop-filter:blur(22px);
+  border:2px solid rgba(255,255,255,.28);border-radius:24px;
+  padding:28px 22px;text-align:center;width:100%;max-width:320px;
+  box-shadow:0 12px 40px rgba(0,0,0,.35);
 }
-.search-candy-anim{font-size:3rem;animation:bounce 1s ease-in-out infinite alternate;}
-@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
-.search-title{font-size:1.4rem;font-weight:900;color:#fff;margin:12px 0 6px;text-shadow:0 2px 8px rgba(0,0,0,.4);}
-.search-sub{font-size:.9rem;color:rgba(255,255,255,.8);}
-.search-dots{display:flex;gap:7px;justify-content:center;margin:16px 0;}
-.dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite;}
+.sc-ic{font-size:3rem;animation:bounce 1s ease-in-out infinite alternate;}
+.sc-ti{font-size:1.3rem;font-weight:900;color:#fff;margin:10px 0 5px;}
+.sc-su{font-size:.83rem;color:rgba(255,255,255,.75);}
+.dots{display:flex;gap:7px;justify-content:center;margin:14px 0;}
+.dot{width:9px;height:9px;border-radius:50%;background:#fff;animation:dp 1.2s ease-in-out infinite;}
 .dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
-@keyframes pulse{0%,100%{transform:scale(.7);opacity:.4}50%{transform:scale(1.2);opacity:1}}
-.search-info{
-  background:rgba(255,255,255,.12);border-radius:12px;padding:12px;
-  font-size:.82rem;color:rgba(255,255,255,.9);line-height:1.8;
+@keyframes dp{0%,100%{transform:scale(.6);opacity:.3}50%{transform:scale(1.15);opacity:1}}
+.sc-inf{background:rgba(255,255,255,.1);border-radius:12px;padding:11px;font-size:.82rem;color:rgba(255,255,255,.88);line-height:1.95;}
+.btn-cx{
+  width:100%;max-width:320px;padding:13px;
+  background:rgba(255,255,255,.17);border:2px solid rgba(255,255,255,.35);
+  border-radius:14px;color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .18s;
 }
-.btn-cancel{
-  background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);
-  color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;
-  border-radius:14px;padding:13px 28px;cursor:pointer;width:100%;max-width:340px;
-  transition:all .2s;
-}
-.btn-cancel:active{transform:scale(.96);}
+.btn-cx:active{transform:scale(.96);}
 
-/* ─── GAME SCREEN ─── */
-#screen-game{padding:6px 8px 8px;justify-content:flex-start;overflow:hidden;}
+/* ════ GAME SCREEN ════ */
+#s-game{justify-content:flex-start;gap:0;}
 
-.top-bar{
-  display:grid;grid-template-columns:1fr auto 1fr;
+/* Top bar */
+.topbar{
+  display:grid;grid-template-columns:1fr 72px 1fr;
   align-items:center;gap:5px;width:100%;max-width:420px;
-  margin-bottom:5px;position:relative;z-index:2;
+  margin-bottom:5px;flex-shrink:0;
 }
-.score-panel{
-  background:rgba(255,255,255,.18);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.35);border-radius:16px;
-  padding:7px 9px;text-align:center;min-width:0;
-}
-.score-panel.mine{border-color:rgba(255,215,0,.6);background:rgba(255,215,0,.18);}
-.score-panel.opponent{border-color:rgba(255,105,180,.6);background:rgba(255,105,180,.15);}
-.sp-name{font-size:9px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.06em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.sp-score{font-size:1.5rem;font-weight:900;color:#fff;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,.4);}
-.sp-score.mine{color:#ffd700;}.sp-score.opp{color:#ff9de2;}
-.sp-label{font-size:8px;color:rgba(255,255,255,.6);}
-
-/* Timer + mute row */
-.timer-mute{display:flex;flex-direction:column;align-items:center;gap:3px;}
-.timer-box{
-  display:flex;flex-direction:column;align-items:center;gap:1px;
+.sbox{
   background:rgba(255,255,255,.15);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.3);border-radius:14px;padding:5px 11px;
+  border:2px solid rgba(255,255,255,.28);border-radius:14px;
+  padding:7px 8px;text-align:center;overflow:hidden;
 }
-.timer-num{font-size:1.25rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);font-variant-numeric:tabular-nums;}
-.timer-num.urgent{color:#ff6b6b;animation:urgentPulse .5s ease-in-out infinite alternate;}
-@keyframes urgentPulse{from{transform:scale(1)}to{transform:scale(1.1)}}
-.timer-label{font-size:7px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;}
+.sbox.me{border-color:rgba(255,215,0,.65);background:rgba(255,215,0,.18);}
+.sbox.opp{border-color:rgba(255,105,180,.65);background:rgba(255,105,180,.16);}
+.sb-nm{font-size:9px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.05em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.sb-sc{font-size:1.55rem;font-weight:900;line-height:1;color:#ffd700;text-shadow:0 2px 6px rgba(0,0,0,.4);}
+.sbox.opp .sb-sc{color:#ff9de2;}
+.sb-lb{font-size:7px;color:rgba(255,255,255,.45);margin-top:1px;}
 
-/* Mute button */
+/* Timer + Mute */
+.tcol{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.tbox{
+  display:flex;flex-direction:column;align-items:center;
+  background:rgba(255,255,255,.14);backdrop-filter:blur(16px);
+  border:2px solid rgba(255,255,255,.26);border-radius:13px;padding:5px 8px;
+}
+.t-num{font-size:1.22rem;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
+.t-num.hot{color:#ff6b6b;animation:hotpop .5s ease-in-out infinite alternate;}
+@keyframes hotpop{from{transform:scale(1)}to{transform:scale(1.14)}}
+.t-ic{font-size:8px;color:rgba(255,255,255,.5);}
 #mute-btn{
-  background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.32);
-  border-radius:20px;padding:3px 9px;cursor:pointer;font-size:12px;
+  background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.3);
+  border-radius:18px;padding:3px 8px;cursor:pointer;font-size:13px;
   color:#fff;font-family:'Nunito',sans-serif;font-weight:700;
   transition:all .15s;user-select:none;
 }
 #mute-btn:active{transform:scale(.9);}
 #mute-btn.muted{background:rgba(239,68,68,.25);border-color:rgba(239,68,68,.5);}
 
-/* Frame + Board */
-.game-frame{position:relative;width:100%;max-width:420px;flex:1;display:flex;flex-direction:column;min-height:0;}
-.frame-img{position:absolute;z-index:3;pointer-events:none;width:100%;height:100%;object-fit:fill;opacity:.6;top:0;left:0;}
-.board-wrap{position:relative;z-index:4;flex:1;display:flex;flex-direction:column;min-height:0;padding:6px;}
+/* Board */
+.bwrap{
+  position:relative;width:100%;max-width:420px;
+  flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
+}
+.bframe{
+  position:absolute;inset:-5px;pointer-events:none;z-index:2;
+  background:url('assets/bg1.png') center/100% 100% no-repeat;opacity:.5;
+}
+#grid{
+  display:grid;grid-template-columns:repeat(8,1fr);gap:2px;
+  width:100%;aspect-ratio:1;max-height:calc(100vh - 158px);
+  position:relative;z-index:3;will-change:transform;
+}
 
-#candy-grid{
-  display:grid;grid-template-columns:repeat(8,1fr);gap:3px;
-  width:100%;aspect-ratio:1;max-height:calc(100vh - 230px);
+/* ── CELLS ── */
+.cell{
+  aspect-ratio:1;position:relative;border-radius:7px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);
+  overflow:hidden;cursor:pointer;
+  will-change:transform,opacity;
+  transition:transform .1s ease,box-shadow .1s ease;
 }
-.candy-cell{
-  aspect-ratio:1;border-radius:8px;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.15);
-  transition:transform .12s,box-shadow .12s,background .12s;
-  overflow:hidden;position:relative;user-select:none;
+.cell.sel{
+  background:rgba(255,215,0,.28);border-color:#ffd700;
+  box-shadow:0 0 14px rgba(255,215,0,.7),inset 0 0 7px rgba(255,215,0,.25);
+  transform:scale(1.07);z-index:5;
 }
-.candy-cell:active{transform:scale(.9);}
-.candy-cell.selected{
-  background:rgba(255,215,0,.35);border-color:#ffd700;
-  box-shadow:0 0 14px rgba(255,215,0,.7),inset 0 0 8px rgba(255,215,0,.3);
-  transform:scale(1.08);
-}
-/* ── HINT ANIMATION ── */
-.candy-cell.hint{
-  animation:hintGlow 0.6s ease-in-out infinite alternate;
-  border-color:rgba(255,255,255,.9) !important;
-  z-index:6;
+
+/* ── HINT glow (10s idle) ── */
+.cell.hint{
+  animation:hintGlow .55s ease-in-out infinite alternate;
+  border-color:rgba(255,255,255,.9) !important;z-index:6;
 }
 @keyframes hintGlow{
-  from{box-shadow:0 0 8px rgba(255,255,255,.4);transform:scale(1);}
-  to  {box-shadow:0 0 18px rgba(255,255,255,.95),0 0 6px rgba(255,215,0,.8);transform:scale(1.1);}
+  from{box-shadow:0 0 6px rgba(255,255,255,.4);transform:scale(1);}
+  to  {box-shadow:0 0 18px rgba(255,255,255,.95),0 0 8px rgba(255,215,0,.8);transform:scale(1.1);}
 }
-.candy-cell.exploding{animation:explode .35s ease-out forwards;}
-@keyframes explode{
-  0%{transform:scale(1.1);opacity:1;}
-  50%{transform:scale(1.4);opacity:.6;background:radial-gradient(circle,#fff,#ffd700);}
+
+.cell img{
+  position:absolute;inset:4%;width:92%;height:92%;
+  object-fit:contain;display:block;pointer-events:none;
+  will-change:transform,opacity;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
+}
+
+/* Explode */
+@keyframes kExplode{
+  0%  {transform:scale(1);opacity:1;}
+  40% {transform:scale(1.5);opacity:.7;filter:brightness(2.2) drop-shadow(0 0 10px #fff);}
   100%{transform:scale(0);opacity:0;}
 }
-.candy-cell.falling{animation:fallIn .28s cubic-bezier(.4,1.6,.6,1) both;}
-@keyframes fallIn{from{transform:translateY(-40px);opacity:0}to{transform:translateY(0);opacity:1}}
-.candy-img{
-  width:90%;height:90%;object-fit:contain;pointer-events:none;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));transition:transform .1s;
-}
-.candy-cell:not(.selected):not(.exploding):hover .candy-img{transform:scale(1.1);}
+.cell.exploding img{animation:kExplode .32s ease-out forwards;}
 
-.opp-section{
-  display:flex;align-items:center;gap:8px;
-  background:rgba(255,255,255,.12);backdrop-filter:blur(12px);
-  border:1.5px solid rgba(255,105,180,.3);border-radius:14px;
-  padding:7px 12px;margin-top:5px;width:100%;max-width:420px;position:relative;z-index:2;
-}
-.opp-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);white-space:nowrap;}
-.opp-name-display{font-size:12px;font-weight:800;color:#ff9de2;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.opp-score-big{font-size:1.1rem;font-weight:900;color:#ff9de2;white-space:nowrap;}
-.opp-status{font-size:9px;color:rgba(255,255,255,.5);}
+/* Fall-in */
+@keyframes kFall{from{transform:translateY(-115%) scale(.8);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
+.cell.fallin img{animation:kFall .34s cubic-bezier(.22,1.2,.36,1) both;}
 
-#jerry-mascot{
-  position:fixed;bottom:65px;right:8px;width:50px;height:50px;z-index:5;
-  pointer-events:none;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4));
-  animation:jerryBounce 2s ease-in-out infinite;
-}
-@keyframes jerryBounce{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(5deg) scale(1.05)}}
+/* Swap bounce */
+@keyframes kSwap{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
+.cell.swpd img{animation:kSwap .22s ease-out;}
 
-/* ─── COUNTDOWN OVERLAY ─── */
-#countdown-overlay{
+/* Shake invalid */
+@keyframes kShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.cell.shake{animation:kShake .24s ease-in-out;}
+
+/* Opponent bar */
+.oppbar{
+  display:flex;align-items:center;gap:8px;width:100%;max-width:420px;
+  flex-shrink:0;margin-top:4px;
+  background:rgba(255,255,255,.11);backdrop-filter:blur(14px);
+  border:1.5px solid rgba(255,105,180,.3);border-radius:13px;padding:7px 12px;
+}
+.ob-lb{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);}
+.ob-nm{font-size:12px;font-weight:800;color:#ff9de2;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.ob-sc{font-size:1.1rem;font-weight:900;color:#ff9de2;}
+.ob-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;transition:background .4s;}
+.ob-dot.live{background:#00e676;}
+
+/* ════ COUNTDOWN OVERLAY ════ */
+#cd-ov{
   position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,.78);backdrop-filter:blur(10px);
-  display:none;align-items:center;justify-content:center;
-  flex-direction:column;gap:12px;
+  background:rgba(0,0,0,.82);backdrop-filter:blur(10px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
 }
-#countdown-overlay.show{display:flex;}
+#cd-ov.on{display:flex;}
 .cd-vs{
-  display:flex;align-items:center;gap:16px;
+  display:flex;align-items:center;gap:18px;
   background:rgba(255,255,255,.1);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.22);border-radius:20px;
-  padding:14px 22px;margin-bottom:8px;
+  border:2px solid rgba(255,255,255,.2);border-radius:20px;padding:14px 22px;
+  margin-bottom:8px;
 }
-.cd-player{text-align:center;}
-.cd-pname{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.7);max-width:100px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.cd-avatar{font-size:2rem;margin-bottom:3px;}
-.cd-vs-txt{font-size:1.4rem;font-weight:900;color:rgba(255,255,255,.5);}
-#cd-number{
-  font-size:6rem;font-weight:900;line-height:1;
-  text-shadow:0 4px 30px rgba(0,0,0,.5);
-  animation:cdPop .45s cubic-bezier(.16,1,.3,1);
+.cd-pl{text-align:center;}
+.cd-av{font-size:2rem;margin-bottom:3px;}
+.cd-pn{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.7);max-width:100px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.cd-vt{font-size:1.5rem;font-weight:900;color:rgba(255,255,255,.45);}
+#cd-num{
+  font-size:7rem;font-weight:900;line-height:1;
+  text-shadow:0 6px 30px rgba(0,0,0,.5);
+  transition:none;
 }
-@keyframes cdPop{from{transform:scale(2.2);opacity:0}to{transform:scale(1);opacity:1}}
-.cd-num-1{color:#ff6eb4;}
-.cd-num-2{color:#f5a623;}
-.cd-num-3{color:#ffd700;}
-.cd-num-go{
-  font-size:4rem;
+.cd-3{color:#ff9de2;}.cd-2{color:#ffd700;}.cd-1{color:#ff6b6b;}
+.cd-go{
+  font-size:4.5rem;font-weight:900;
   background:linear-gradient(135deg,#ffd700,#ff8c00);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  animation:goPop .5s cubic-bezier(.16,1,.3,1);
 }
-@keyframes goPop{from{transform:scale(.5) rotate(-15deg);opacity:0}to{transform:scale(1) rotate(0deg);opacity:1}}
-.cd-sub{font-size:.9rem;font-weight:700;color:rgba(255,255,255,.65);}
+@keyframes cdPop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}
+.cd-pop{animation:cdPop .35s cubic-bezier(.16,1,.3,1);}
+.cd-sub{font-size:.9rem;font-weight:700;color:rgba(255,255,255,.6);}
 
-/* ─── HINT TOAST ─── */
-#hint-toast{
-  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(60px);
+/* ════ HINT TOAST ════ */
+#hint-bar{
+  position:fixed;bottom:72px;left:50%;
+  transform:translateX(-50%) translateY(50px);
   z-index:400;opacity:0;pointer-events:none;
   transition:all .35s cubic-bezier(.68,-.55,.265,1.55);
 }
-#hint-toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
-.hint-inner{
-  background:rgba(255,215,0,.22);border:1.5px solid rgba(255,215,0,.55);
+#hint-bar.on{transform:translateX(-50%) translateY(0);opacity:1;}
+.hb-inner{
+  background:rgba(255,215,0,.2);border:1.5px solid rgba(255,215,0,.55);
   backdrop-filter:blur(16px);border-radius:24px;
   padding:8px 18px;font-size:12px;font-weight:700;color:#ffd700;
   white-space:nowrap;display:flex;align-items:center;gap:6px;
 }
 
-/* ─── RESULT ─── */
-#screen-result{background:rgba(0,0,0,.75);backdrop-filter:blur(12px);}
-.result-card{
-  background:linear-gradient(135deg,rgba(40,0,60,.95),rgba(80,0,80,.95));
-  border:2px solid rgba(255,255,255,.2);border-radius:28px;
-  padding:32px 24px;text-align:center;width:100%;max-width:320px;
-  box-shadow:0 20px 60px rgba(0,0,0,.5);
-  animation:resultPop .45s cubic-bezier(.16,1,.3,1);
+/* ════ RESULT ════ */
+#s-result{justify-content:center;}
+.rc{
+  background:linear-gradient(135deg,rgba(28,0,52,.97),rgba(68,0,78,.97));
+  border:2px solid rgba(255,255,255,.18);border-radius:26px;
+  padding:30px 22px;text-align:center;width:100%;max-width:310px;
+  box-shadow:0 24px 60px rgba(0,0,0,.55);
+  animation:rIn .4s cubic-bezier(.16,1,.3,1);
 }
-@keyframes resultPop{from{opacity:0;transform:scale(.85) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.res-emoji{font-size:4rem;margin-bottom:10px;display:block;}
-.res-title{font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;text-shadow:0 3px 10px rgba(0,0,0,.5);}
-.res-title.win{background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.res-title.lose{color:#ff9de2;}.res-title.draw{color:#a78bfa;}
-.res-scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
-.rs-panel{background:rgba(255,255,255,.1);border-radius:12px;padding:10px;}
-.rs-name{font-size:10px;color:rgba(255,255,255,.6);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.rs-score{font-size:1.5rem;font-weight:900;color:#fff;}
-.rs-score.highlight{color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,.5);}
-.res-prize{
-  background:linear-gradient(135deg,rgba(255,215,0,.2),rgba(255,140,0,.15));
-  border:1.5px solid rgba(255,215,0,.4);border-radius:12px;
-  padding:10px;margin-bottom:16px;font-size:.9rem;color:#ffd700;font-weight:700;
-}
-.res-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.res-btn{
-  font-family:'Nunito',sans-serif;font-weight:800;font-size:.9rem;
-  border:none;border-radius:12px;padding:12px;cursor:pointer;
-  transition:all .16s;color:#fff;
-}
-.res-btn:active{transform:scale(.96);}
-.res-btn.play-again{background:linear-gradient(135deg,#e91e8c,#9b59b6);box-shadow:0 4px 16px rgba(233,30,140,.4);}
-.res-btn.go-home{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);}
+@keyframes rIn{from{opacity:0;transform:scale(.85) translateY(25px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.r-ic{font-size:3.8rem;display:block;margin-bottom:8px;}
+.r-ti{font-size:1.75rem;font-weight:900;color:#fff;margin-bottom:5px;}
+.r-ti.win{background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.r-ti.lose{color:#ff9de2;}.r-ti.draw{color:#c4b5fd;}
+.r-sc{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0;}
+.rs-b{background:rgba(255,255,255,.09);border-radius:11px;padding:10px 6px;}
+.rs-nm{font-size:9px;color:rgba(255,255,255,.5);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.rs-v{font-size:1.55rem;font-weight:900;color:#fff;}
+.rs-v.hl{color:#ffd700;text-shadow:0 0 18px rgba(255,215,0,.5);}
+.r-prz{background:rgba(255,215,0,.14);border:1.5px solid rgba(255,215,0,.35);border-radius:11px;padding:10px;margin-bottom:14px;font-size:.88rem;font-weight:700;color:#ffd700;}
+.r-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.r-btn{font-family:'Nunito',sans-serif;font-weight:800;font-size:.87rem;border:none;border-radius:12px;padding:12px 6px;cursor:pointer;color:#fff;transition:all .16s;}
+.r-btn:active{transform:scale(.95);}
+.rb-play{background:linear-gradient(135deg,#e91e8c,#7b1fa2);box-shadow:0 4px 16px rgba(233,30,140,.4);}
+.rb-home{background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.3);}
 
-/* ─── FAKE DC ─── */
-#fake-disconnect{
-  position:fixed;inset:0;z-index:999;
-  background:rgba(0,0,0,.85);backdrop-filter:blur(8px);
-  display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
-}
-#fake-disconnect.show{display:flex;}
-.fd-card{background:rgba(30,0,50,.9);border:2px solid rgba(255,105,180,.3);border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;}
-.fd-icon{font-size:2.5rem;margin-bottom:12px;}
-.fd-text{color:#fff;font-size:1rem;font-weight:700;line-height:1.5;}
+/* Overlays */
+#fkdc{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;}
+#fkdc.on{display:flex;}
+.fkdc-c{background:rgba(18,0,38,.97);border:2px solid rgba(233,30,140,.35);border-radius:20px;padding:28px 22px;text-align:center;max-width:268px;}
+.fkdc-ic{font-size:2.5rem;margin-bottom:10px;}
+.fkdc-tx{color:#fff;font-size:.95rem;font-weight:700;line-height:1.55;}
 
 /* Score pop */
-.score-pop{
-  position:fixed;pointer-events:none;z-index:500;
-  font-size:1.2rem;font-weight:900;color:#ffd700;
-  text-shadow:0 2px 8px rgba(0,0,0,.6);
-  animation:scorePopAnim .8s ease-out forwards;
-}
-@keyframes scorePopAnim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.4)}}
+.scpop{position:fixed;pointer-events:none;z-index:600;font-size:1.1rem;font-weight:900;color:#ffd700;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:scpopanim .9s ease-out forwards;}
+@keyframes scpopanim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.5)}}
 
 /* Toast */
-#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:9999;transition:all .35s cubic-bezier(.68,-.55,.265,1.55);opacity:0;}
-#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
-.ti{padding:10px 20px;border-radius:100px;font-size:13px;font-weight:700;backdrop-filter:blur(20px);display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);}
-.tok{background:rgba(0,200,83,.9);color:#fff;}
-.terr{background:rgba(239,68,68,.9);color:#fff;}
+#toast{position:fixed;top:10px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:900;opacity:0;pointer-events:none;transition:all .34s cubic-bezier(.68,-.55,.265,1.55);}
+#toast.on{transform:translateX(-50%) translateY(0);opacity:1;}
+.ti{padding:9px 18px;border-radius:100px;font-size:12px;font-weight:700;backdrop-filter:blur(20px);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);display:flex;align-items:center;gap:6px;}
+.tok{background:rgba(0,200,83,.9);color:#fff;}.terr{background:rgba(239,68,68,.9);color:#fff;}
+
+#jerry{position:fixed;right:5px;bottom:52px;width:46px;z-index:4;pointer-events:none;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45));animation:jw 2.5s ease-in-out infinite;}
+@keyframes jw{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg) scale(1.07)}}
 </style>
 </head>
 <body>
 
 <!-- LOADER -->
-<div id="ldr">
-  <div class="ldr-logo">🍭</div>
-  <div class="ldr-title">Candy Crush</div>
-  <div class="ring"></div>
-</div>
+<div id="ldr"><div class="ldr-ic">🍭</div><div class="ldr-tx">Candy Crush</div><div class="ring"></div></div>
 
 <!-- TOAST -->
 <div id="toast"><div class="ti" id="ti"></div></div>
 
-<!-- HINT TOAST -->
-<div id="hint-toast">
-  <div class="hint-inner">💡 အကြံပြုချက် — တောက်ပနေသော သကြားလုံးကို ရွှေ့ပါ!</div>
-</div>
+<!-- HINT BAR -->
+<div id="hint-bar"><div class="hb-inner">💡 တောက်ပနေသောသကြားလုံး ၂ ခုကို ရွှေ့ပါ!</div></div>
 
-<!-- FAKE DISCONNECT -->
-<div id="fake-disconnect">
-  <div class="fd-card">
-    <div class="fd-icon">📡</div>
-    <div class="fd-text" id="fd-msg">ချိတ်ဆက်မှု ပြဿနာ...</div>
-    <div class="ring" style="margin:12px auto 0"></div>
-  </div>
-</div>
+<!-- FAKE DC -->
+<div id="fkdc"><div class="fkdc-c"><div class="fkdc-ic">📡</div><div class="fkdc-tx" id="fkdc-msg">ချိတ်ဆက်မှု ပြဿနာ...</div><div class="ring" style="margin:12px auto 0;"></div></div></div>
 
-<!-- ═══ COUNTDOWN OVERLAY ═══ -->
-<div id="countdown-overlay">
+<!-- COUNTDOWN OVERLAY (covers pre-rendered board) -->
+<div id="cd-ov">
   <div class="cd-vs">
-    <div class="cd-player">
-      <div class="cd-avatar">🙋</div>
-      <div class="cd-pname" id="cd-my-name">ကိုယ်</div>
-    </div>
-    <div class="cd-vs-txt">VS</div>
-    <div class="cd-player">
-      <div class="cd-avatar">🎮</div>
-      <div class="cd-pname" id="cd-opp-name">ဆော့ဖော်</div>
-    </div>
+    <div class="cd-pl"><div class="cd-av">🙋</div><div class="cd-pn" id="cd-me">ကိုယ်</div></div>
+    <div class="cd-vt">VS</div>
+    <div class="cd-pl"><div class="cd-av">🎮</div><div class="cd-pn" id="cd-opp">ဆော့ဖော်</div></div>
   </div>
-  <div id="cd-number" class="cd-num-3">3</div>
+  <div id="cd-num" class="cd-3 cd-pop">3</div>
   <div class="cd-sub" id="cd-sub">ကစားရန် အသင့်ဖြစ်ပါ...</div>
 </div>
 
-<!-- SEARCH SCREEN -->
-<div id="screen-search">
-  <div class="search-card">
-    <div class="search-candy-anim">🍭</div>
-    <div class="search-title">ဆော့ဖော် ရှာနေသည်...</div>
-    <div class="search-sub">Multiplayer ကစားနည်းရှာနေပါသည်</div>
-    <div class="search-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <div class="search-info">
-      💰 ဝင်ကြေး: <b>500 MMK</b><br>
-      🏆 နိုင်ရင်: <b>800 MMK</b><br>
-      ⏱ ကစားချိန်: <b>3 မိနစ်</b>
-    </div>
+<!-- JERRY -->
+<img id="jerry" src="assets/jerry.png" alt="" onerror="this.remove()">
+
+<!-- SEARCH -->
+<div class="scr" id="s-search">
+  <div class="s-card">
+    <div class="sc-ic">🍭</div>
+    <div class="sc-ti">ဆော့ဖော် ရှာနေသည်...</div>
+    <div class="sc-su">Multiplayer Match ရှာနေပါသည်</div>
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="sc-inf">💰 ဝင်ကြေး: <b>500 MMK</b><br>🏆 နိုင်ရင်: <b>800 MMK</b><br>⏱ ကစားချိန်: <b>3 မိနစ်</b></div>
   </div>
-  <button class="btn-cancel" onclick="cancelSearch()">❌ ဖျက်သိမ်းမည်</button>
+  <button class="btn-cx" onclick="cancelSearch()">❌ ဖျက်သိမ်းမည်</button>
 </div>
 
-<!-- GAME SCREEN -->
-<div id="screen-game">
-  <div class="top-bar">
-    <div class="score-panel mine">
-      <div class="sp-name" id="my-name">ကိုယ်</div>
-      <div class="sp-score mine" id="my-score-val">0</div>
-      <div class="sp-label">မှတ်</div>
-    </div>
-
-    <!-- Timer + Mute -->
-    <div class="timer-mute">
-      <div class="timer-box">
-        <div class="timer-num" id="timer-display">3:00</div>
-        <div class="timer-label">⏱</div>
-      </div>
+<!-- GAME -->
+<div class="scr" id="s-game">
+  <div class="topbar">
+    <div class="sbox me"><div class="sb-nm" id="my-nm">ကိုယ်</div><div class="sb-sc" id="my-sc">0</div><div class="sb-lb">မှတ်</div></div>
+    <div class="tcol">
+      <div class="tbox"><div class="t-num" id="timer">3:00</div><div class="t-ic">⏱</div></div>
       <button id="mute-btn" onclick="toggleMute()">🔊</button>
     </div>
-
-    <div class="score-panel opponent">
-      <div class="sp-name" id="opp-name">ဆော့ဖော်</div>
-      <div class="sp-score opp" id="opp-score-val">0</div>
-      <div class="sp-label">မှတ်</div>
-    </div>
+    <div class="sbox opp"><div class="sb-nm" id="opp-nm">ဆော့ဖော်</div><div class="sb-sc" id="opp-sc">0</div><div class="sb-lb">မှတ်</div></div>
   </div>
-
-  <div class="game-frame">
-    <img class="frame-img" src="assets/bg1.png" alt="" onerror="this.style.display='none'">
-    <div class="board-wrap">
-      <div id="candy-grid"></div>
-    </div>
+  <div class="bwrap">
+    <div class="bframe"></div>
+    <div id="grid"></div>
   </div>
-
-  <div class="opp-section">
-    <span class="opp-label">🍬</span>
-    <span class="opp-name-display" id="opp-name-bar">ဆော့ဖော်</span>
-    <span class="opp-score-big" id="opp-score-bar">0</span>
-    <span class="opp-status" id="opp-status">●</span>
+  <div class="oppbar">
+    <div class="ob-lb">🍬</div>
+    <div class="ob-nm" id="opp-bar-nm">ဆော့ဖော်</div>
+    <div class="ob-sc" id="opp-bar-sc">0</div>
+    <div class="ob-dot" id="opp-dot"></div>
   </div>
 </div>
 
-<img id="jerry-mascot" src="assets/jerry.png" alt="Jerry" onerror="this.style.display='none'">
-
-<!-- RESULT SCREEN -->
-<div id="screen-result">
-  <div class="result-card">
-    <span class="res-emoji" id="res-emoji">🏆</span>
-    <div class="res-title" id="res-title">ကစားပြီး!</div>
-    <div class="res-scores">
-      <div class="rs-panel">
-        <div class="rs-name" id="res-my-name">ကိုယ်</div>
-        <div class="rs-score" id="res-my-score">0</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.4);">မှတ်</div>
-      </div>
-      <div class="rs-panel">
-        <div class="rs-name" id="res-opp-name">ဆော့ဖော်</div>
-        <div class="rs-score" id="res-opp-score">0</div>
-        <div style="font-size:9px;color:rgba(255,255,255,.4);">မှတ်</div>
-      </div>
+<!-- RESULT -->
+<div class="scr" id="s-result">
+  <div class="rc">
+    <span class="r-ic" id="r-ic">🏆</span>
+    <div class="r-ti" id="r-ti">ပြီးပါပြီ</div>
+    <div class="r-sc">
+      <div class="rs-b"><div class="rs-nm" id="r-my-nm">ကိုယ်</div><div class="rs-v" id="r-my-sc">0</div></div>
+      <div class="rs-b"><div class="rs-nm" id="r-op-nm">ဆော့ဖော်</div><div class="rs-v" id="r-op-sc">0</div></div>
     </div>
-    <div class="res-prize" id="res-prize">🏆 ငွေ: +800 MMK</div>
-    <div class="res-btns">
-      <button class="res-btn play-again" onclick="sfxPlay('btn');goToSearch()">🍭 ထပ်ကစား</button>
-      <button class="res-btn go-home"    onclick="sfxPlay('btn');goHome()">🏠 ပင်မ</button>
+    <div class="r-prz" id="r-prz">—</div>
+    <div class="r-btns">
+      <button class="r-btn rb-play" onclick="sfx('btn');replayGame()">🍭 ထပ်ကစား</button>
+      <button class="r-btn rb-home" onclick="sfx('btn');goHome()">🏠 ပင်မ</button>
     </div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
-//  CONFIG
-// ═══════════════════════════════════════════════════
-const BACKEND      = 'https://candycrashbackend.onrender.com';
-const BOARD_SIZE   = 8;
-const CANDY_COUNT  = 9;
-const GAME_DURATION= 180;       // seconds (3 min)
-const HINT_IDLE_MS = 10000;     // 10s inactivity → show hint
+/* ══════════════════════════════════════════════════════
+   CONFIG
+══════════════════════════════════════════════════════ */
+const BACKEND     = 'https://candycrashbackend.onrender.com';
+const ROWS        = 8;
+const COLS        = 8;
+const N_CANDY     = 9;
+const GAME_SEC    = 180;
+const HINT_IDLE   = 10000;   // 10s without a move → show hint
+const PTS_CANDY   = 10;
 
-// ═══════════════════════════════════════════════════
-//  AUDIO ENGINE
-// ═══════════════════════════════════════════════════
-let audioUnlocked = false;
-let isMuted       = false;
-let timeWarnPlayed= false;
-let fiveSecPlayed = false;
-
-const A = {
-  bg:      document.getElementById('aud-bg'),
-  swap:    document.getElementById('aud-swap'),
-  invalid: document.getElementById('aud-invalid'),
-  match:   document.getElementById('aud-match'),
-  combo:   document.getElementById('aud-combo'),
-  btn:     document.getElementById('aud-btn'),
-  win:     document.getElementById('aud-win'),
-  lose:    document.getElementById('aud-lose'),
-  twarn:   document.getElementById('aud-twarn'),
-  five:    document.getElementById('aud-5sec'),
-  strip:   document.getElementById('aud-strip'),
+/* ══════════════════════════════════════════════════════
+   ██ WEB AUDIO ENGINE ██
+   Uses AudioContext + fetch to decode audio files.
+   This bypasses MIME-type restrictions for .ogg.ogx files
+   because decodeAudioData() reads raw binary, not MIME.
+══════════════════════════════════════════════════════ */
+const AudioFiles = {
+  bg:      'audio/bgmusic.mp3',
+  swap:    'audio/Switch_sound1.ogg.ogx',
+  invalid: 'audio/Negative_switch_sound1.ogg.ogx',
+  match:   'audio/Candy_land4.ogg.ogx',
+  combo:   'audio/Combo_sound3.ogg.ogx',
+  btn:     'audio/Button_press.ogg.ogx',
+  win:     'audio/Win.ogg.ogx',
+  lose:    'audio/Lose.ogg.ogx',
+  twarn:   'audio/Time_warning.ogg.ogx',
+  five:    'audio/5_seconds_left_flash_version.wav',
+  strip:   'audio/Striped_candy_created1.ogx',
+};
+const AudioVolume = {
+  bg:.32, swap:.75, invalid:.65, match:.75,
+  combo:.82, btn:.5, win:.88, lose:.78,
+  twarn:.72, five:.82, strip:.72,
 };
 
-// Volume presets
-A.bg.volume     = 0.35;
-A.swap.volume   = 0.7;
-A.invalid.volume= 0.6;
-A.match.volume  = 0.75;
-A.combo.volume  = 0.8;
-A.btn.volume    = 0.5;
-A.win.volume    = 0.85;
-A.lose.volume   = 0.75;
-A.twarn.volume  = 0.7;
-A.five.volume   = 0.8;
-A.strip.volume  = 0.7;
+let _ctx = null;
+let _bufs = {};
+let _bgSrc = null;
+let _bgGain = null;
+let _sfxGain = null;
+let _muted = false;
+let _unlocked = false;
+let _loading = false;
 
-// Unlock audio on first user gesture (mobile requirement)
-function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  // Silently play+pause each audio to unlock
-  Object.values(A).forEach(a => {
-    const p = a.play();
-    if (p) p.then(() => a.pause()).catch(() => {});
-  });
-}
-document.addEventListener('touchstart', unlockAudio, {once:true, passive:true});
-document.addEventListener('click',      unlockAudio, {once:true, passive:true});
-
-function sfxPlay(key) {
-  if (isMuted) return;
-  const a = A[key];
-  if (!a) return;
+// Create AudioContext and load all sounds (called on first user gesture)
+async function initAudio() {
+  if (_ctx || _loading) return;
+  _loading = true;
   try {
-    a.currentTime = 0;
-    a.play().catch(()=>{});
-  } catch(e){}
+    _ctx = new (window.AudioContext || window.webkitAudioContext)();
+    await _ctx.resume();
+
+    _bgGain  = _ctx.createGain(); _bgGain.gain.value  = AudioVolume.bg;  _bgGain.connect(_ctx.destination);
+    _sfxGain = _ctx.createGain(); _sfxGain.gain.value = 1.0;             _sfxGain.connect(_ctx.destination);
+
+    // Load all audio files in parallel
+    await Promise.all(
+      Object.entries(AudioFiles).map(async ([id, url]) => {
+        try {
+          const resp = await fetch(url);
+          const arr  = await resp.arrayBuffer();
+          _bufs[id]  = await _ctx.decodeAudioData(arr);
+        } catch(e) {
+          console.warn('[Audio] Failed to load:', id, url, e.message);
+        }
+      })
+    );
+    _unlocked = true;
+    console.log('[Audio] Loaded:', Object.keys(_bufs).join(', '));
+  } catch(e) {
+    console.warn('[Audio] init failed:', e);
+  }
+  _loading = false;
 }
 
-function bgMusicPlay() {
-  if (isMuted) return;
-  A.bg.currentTime = 0;
-  A.bg.play().catch(()=>{});
+// Play a one-shot SFX
+function sfx(id) {
+  if (_muted || !_ctx || !_bufs[id]) return;
+  try {
+    const src = _ctx.createBufferSource();
+    src.buffer = _bufs[id];
+    const gain = _ctx.createGain();
+    gain.gain.value = AudioVolume[id] ?? 0.75;
+    src.connect(gain);
+    gain.connect(_sfxGain);
+    src.start(0);
+  } catch(e) {}
 }
 
-function bgMusicStop() {
-  try { A.bg.pause(); A.bg.currentTime = 0; } catch(e){}
+// Start background music loop
+function bgPlay() {
+  if (_muted || !_ctx || !_bufs.bg) return;
+  bgStop();
+  try {
+    _bgSrc = _ctx.createBufferSource();
+    _bgSrc.buffer = _bufs.bg;
+    _bgSrc.loop = true;
+    _bgSrc.connect(_bgGain);
+    _bgSrc.start(0);
+  } catch(e) {}
+}
+
+function bgStop() {
+  if (_bgSrc) {
+    try { _bgSrc.stop(); } catch(e){}
+    _bgSrc = null;
+  }
 }
 
 function toggleMute() {
-  isMuted = !isMuted;
+  _muted = !_muted;
   const btn = document.getElementById('mute-btn');
-  if (isMuted) {
-    A.bg.pause();
+  if (_muted) {
+    bgStop();
     btn.textContent = '🔇';
     btn.classList.add('muted');
   } else {
-    A.bg.play().catch(()=>{});
     btn.textContent = '🔊';
     btn.classList.remove('muted');
+    bgPlay();
   }
 }
 
-// ═══════════════════════════════════════════════════
-//  GAME STATE
-// ═══════════════════════════════════════════════════
-let socket=null, myUserId=null, myUserName='';
-let myGameId=null, opponentId=null, opponentName='';
-let myScore=0, opponentScore=0;
-let board=[], selected=null;
-let gameActive=false, timerInterval=null, timeLeft=GAME_DURATION;
-let isProcessing=false;
+// Unlock audio on first touch/click
+function unlockOnGesture() {
+  if (_unlocked) return;
+  initAudio().then(() => {
+    // Don't auto-play bg here; let game start trigger it
+  });
+}
+document.addEventListener('touchstart', unlockOnGesture, {once:true, passive:true});
+document.addEventListener('click',      unlockOnGesture, {once:true, passive:true});
 
-// Hint system state
-let lastMoveTime   = 0;
-let hintInterval   = null;
-let hintCells      = [];      // [{r,c},{r,c}] currently highlighted hint
-let hintToastTimer = null;
+/* ══════════════════════════════════════════════════════
+   GAME STATE
+══════════════════════════════════════════════════════ */
+let socket, myId, myName='', gameId, oppId, oppName='';
+let myScore=0, oppScore=0, timeLeft=GAME_SEC;
+let timerInt=null, gameOn=false;
+let board=[], cells=[];
+let busy=false, sel=null;
+
+// Hint state
+let lastMove=0, hintInt=null, hintCells=[], hintTimer=null;
+
+// Timer audio flags
+let tWarnPlayed=false, t5Played=false;
 
 const tg = window.Telegram?.WebApp;
 
-// ═══════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', async () => {
-  if (tg) { tg.expand(); tg.setHeaderColor('#6c3483'); }
+/* ══════════════════════════════════════════════════════
+   BOOT
+══════════════════════════════════════════════════════ */
+addEventListener('DOMContentLoaded', async () => {
+  tg?.expand();
 
   try {
-    const res = await fetch(`${BACKEND}/api/auth`, {
+    const r = await fetch(`${BACKEND}/api/auth`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ initData: tg?.initData||'', telegramId: tg?.initDataUnsafe?.user?.id })
+      body:JSON.stringify({initData:tg?.initData||'', telegramId:tg?.initDataUnsafe?.user?.id})
     });
-    const data = await res.json();
-    if (data.error) { showToast(data.error, true); return; }
-    myUserId   = data.telegramId;
-    myUserName = data.firstName || data.username || `User${myUserId}`;
-  } catch(e) {
-    showToast('Server ချိတ်ဆက်မရပါ', true); return;
-  }
+    const d = await r.json();
+    if (d.error) { toast(d.error,1); return; }
+    myId   = d.telegramId;
+    myName = d.firstName || d.username || `User${myId}`;
+  } catch { toast('Server ချိတ်ဆက်မရပါ',1); return; }
 
   hideLdr();
-  initSocket();
-  const params = new URLSearchParams(window.location.search);
-  startSearch(params.get('join'));
+  connectSocket();
+  doSearch();
 });
 
 function hideLdr() {
-  const l = document.getElementById('ldr');
-  l.style.opacity = '0';
-  setTimeout(() => l.style.display = 'none', 400);
+  const l=document.getElementById('ldr');
+  l.style.opacity='0';
+  setTimeout(()=>l.remove(), 420);
 }
 
-// ═══════════════════════════════════════════════════
-//  SOCKET
-// ═══════════════════════════════════════════════════
-function initSocket() {
-  const joinParam = new URLSearchParams(window.location.search).get('join');
-  socket = io(BACKEND, {
-    transports:['websocket','polling'],
-    query:{ join: joinParam||'' }
+/* ══════════════════════════════════════════════════════
+   SOCKET
+══════════════════════════════════════════════════════ */
+function connectSocket() {
+  const jp = new URLSearchParams(location.search).get('join')||'';
+  socket = io(BACKEND, {transports:['websocket','polling'], query:{join:jp}});
+
+  socket.on('waitingForPlayer', ({gameId:gid}) => { gameId=gid; show('s-search'); });
+
+  socket.on('gameStarted', d => {
+    gameId   = d.gameId;
+    oppId    = d.opponentId;
+    oppName  = d.players?.[d.opponentId] || d.opponentName || 'ဆော့ဖော်';
+    myName   = d.players?.[d.myId] || myName;
+    timeLeft = d.duration || GAME_SEC;
+    prepareGame();
   });
 
-  socket.on('connect', () => console.log('Socket connected'));
-
-  socket.on('waitingForPlayer', ({ gameId }) => {
-    myGameId = gameId;
-    showScreen('search');
+  socket.on('gameResumed', d => {
+    gameId   = d.gameId;
+    oppId    = d.opponentId;
+    oppName  = d.players?.[d.opponentId]||'ဆော့ဖော်';
+    timeLeft = Math.max(0,Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
+    myScore  = d.myScore||0; oppScore = d.opponentScore||0;
+    startGame(true); // skip countdown on resume
   });
 
-  socket.on('gameStarted', (data) => {
-    myGameId      = data.gameId;
-    opponentId    = data.opponentId;
-    opponentName  = data.players?.[data.opponentId] || data.opponentName || 'ဆော့ဖော်';
-    myUserName    = data.players?.[data.myId] || myUserName;
-    timeLeft      = data.duration || GAME_DURATION;
-    prepareAndCountdown();
+  socket.on('opponentScore', ({score}) => {
+    oppScore = score;
+    document.getElementById('opp-sc').textContent   = oppScore;
+    document.getElementById('opp-bar-sc').textContent = oppScore;
+    document.getElementById('opp-dot').classList.add('live');
   });
 
-  socket.on('gameResumed', (data) => {
-    myGameId      = data.gameId;
-    opponentId    = data.opponentId;
-    opponentName  = data.players?.[data.opponentId] || 'ဆော့ဖော်';
-    timeLeft      = Math.max(0, Math.round((data.duration*1000 - (data.elapsedMs||0))/1000));
-    myScore       = data.myScore||0;
-    opponentScore = data.opponentScore||0;
-    // Skip countdown if resuming
-    startGame();
+  socket.on('gameOver', d => {
+    gameOn=false; busy=false; clearInterval(timerInt); stopHint(); bgStop();
+    showResult(d.winner, myScore, d.scores?.[oppId]??oppScore, d.reason);
   });
 
-  socket.on('opponentScore', ({ score }) => {
-    opponentScore = score;
-    updateOpponentScore();
+  socket.on('fakeDisconnect', ({message}) => {
+    busy=true; gameOn=false; clearInterval(timerInt); stopHint(); bgStop();
+    document.getElementById('fkdc-msg').textContent=message;
+    document.getElementById('fkdc').classList.add('on');
   });
 
-  socket.on('gameOver', (data) => {
-    gameActive = false;
-    clearInterval(timerInterval);
-    stopHintSystem();
-    bgMusicStop();
-    const myFinalScore  = myScore;
-    const oppFinalScore = data.scores?.[opponentId] || opponentScore;
-    showResult(data.winner, myFinalScore, oppFinalScore, data.reason);
+  socket.on('insufficientBalance', ({balance,required}) => {
+    toast(`ငွေမလုံပါ (${balance}/${required} MMK)`,1);
+    setTimeout(goHome,1800);
   });
 
-  socket.on('searchCancelled', () => { showScreen(null); goHome(); });
-
-  socket.on('insufficientBalance', ({ balance, required }) => {
-    hideLdr();
-    showToast(`ငွေမလုံပါ (${balance}/${required} MMK)`, true);
-    setTimeout(goHome, 1800);
-  });
-
-  socket.on('fakeDisconnect', ({ message }) => {
-    const fd = document.getElementById('fake-disconnect');
-    document.getElementById('fd-msg').textContent = message;
-    fd.classList.add('show');
-    gameActive = false;
-    bgMusicStop();
-  });
-
-  socket.on('emoteReceived', () => {});
-  socket.on('searchUpdate',  () => {});
-  socket.on('error', ({ msg }) => showToast(msg, true));
+  socket.on('searchCancelled', goHome);
+  socket.on('error', ({msg})=>toast(msg,1));
 }
 
-// ═══════════════════════════════════════════════════
-//  SEARCH
-// ═══════════════════════════════════════════════════
-function startSearch(joinId) {
-  if (!socket || !myUserId) return;
-  showScreen('search');
-  socket.emit('findGame', { userId: myUserId });
-}
+/* ══════════════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════════════ */
+function doSearch() { show('s-search'); socket?.emit('findGame',{userId:myId}); }
+function cancelSearch() { sfx('btn'); socket?.emit('cancelSearch',{userId:myId}); goHome(); }
 
-function cancelSearch() {
-  sfxPlay('btn');
-  if (socket && myGameId) socket.emit('cancelSearch', { userId: myUserId });
-  goHome();
-}
+/* ══════════════════════════════════════════════════════
+   PREPARE GAME  ← Board pre-rendered, THEN countdown
+   This is the key fix: images are in DOM & start loading
+   BEFORE the countdown overlay appears. By GO! all
+   images are loaded → zero flicker.
+══════════════════════════════════════════════════════ */
+async function prepareGame() {
+  // 1. Reset state
+  busy=false; sel=null; gameOn=false;
+  myScore=0; oppScore=0; tWarnPlayed=false; t5Played=false;
 
-// ═══════════════════════════════════════════════════
-//  PREPARE BOARD + COUNTDOWN (1, 2, 3, GO!)
-// ═══════════════════════════════════════════════════
-async function prepareAndCountdown() {
-  // 1. Pre-build the board data + render the grid INVISIBLY
-  //    (DOM cells are created, images start loading)
-  board         = generateBoard();
-  selected      = null;
-  gameActive    = false;      // still locked during countdown
-  isProcessing  = false;
-  myScore       = 0;
-  opponentScore = 0;
-  timeWarnPlayed= false;
-  fiveSecPlayed = false;
+  // 2. Set UI names
+  document.getElementById('my-nm').textContent     = myName;
+  document.getElementById('opp-nm').textContent    = oppName;
+  document.getElementById('opp-bar-nm').textContent= oppName;
+  document.getElementById('my-sc').textContent     = '0';
+  document.getElementById('opp-sc').textContent    = '0';
+  document.getElementById('opp-bar-sc').textContent= '0';
+  document.getElementById('opp-dot').classList.remove('live');
 
-  // Set up UI names silently
-  document.getElementById('my-name').textContent    = myUserName;
-  document.getElementById('opp-name').textContent   = opponentName;
-  document.getElementById('opp-name-bar').textContent = opponentName;
-  document.getElementById('my-score-val').textContent = '0';
-  document.getElementById('opp-score-val').textContent = '0';
-  document.getElementById('opp-score-bar').textContent = '0';
+  // 3. PRE-RENDER board (DOM exists, images start loading now)
+  board = makeBoard();
+  buildGrid();      // create DOM cells once
+  drawAll();        // push all candy images to DOM
 
-  // Render board (so images can preload while countdown plays)
-  renderBoard();
+  // 4. Show game screen (board visible underneath countdown)
+  show('s-game');
 
-  // Show game screen (with board rendered) but covered by countdown overlay
-  showScreen('game');
+  // 5. Set countdown VS names
+  document.getElementById('cd-me').textContent  = myName;
+  document.getElementById('cd-opp').textContent = oppName;
 
-  // Set VS names in countdown
-  document.getElementById('cd-my-name').textContent  = myUserName;
-  document.getElementById('cd-opp-name').textContent = opponentName;
+  // 6. Ensure audio is loaded (user has already touched screen to find a game)
+  if (!_unlocked) await initAudio();
 
-  // Start bg music right when countdown begins
-  bgMusicPlay();
+  // 7. Start BG music
+  bgPlay();
 
-  // Show countdown
+  // 8. Show countdown overlay ON TOP of pre-rendered board
   await runCountdown();
 
-  // Countdown done — unlock game!
-  gameActive = true;
-  lastMoveTime = Date.now();
-  startTimer();
-  startHintSystem();
+  // 9. Countdown done — unlock game!
+  gameOn=true; lastMove=Date.now();
+  startTimer(); startHint();
 }
 
+/* Skip countdown for resumed games */
+function startGame(skip=false) {
+  busy=false; sel=null; gameOn=false;
+  tWarnPlayed=false; t5Played=false;
+
+  document.getElementById('my-nm').textContent     = myName;
+  document.getElementById('opp-nm').textContent    = oppName;
+  document.getElementById('opp-bar-nm').textContent= oppName;
+  document.getElementById('my-sc').textContent     = String(myScore);
+  document.getElementById('opp-sc').textContent    = String(oppScore);
+  document.getElementById('opp-bar-sc').textContent= String(oppScore);
+
+  board = makeBoard(); buildGrid(); drawAll();
+  bgPlay();
+  show('s-game');
+  gameOn=true; lastMove=Date.now();
+  startTimer(); startHint();
+}
+
+/* ══════════════════════════════════════════════════════
+   COUNTDOWN  1-2-3-GO!
+══════════════════════════════════════════════════════ */
 async function runCountdown() {
-  const overlay  = document.getElementById('countdown-overlay');
-  const cdNum    = document.getElementById('cd-number');
-  const cdSub    = document.getElementById('cd-sub');
-  overlay.classList.add('show');
+  const ov  = document.getElementById('cd-ov');
+  const num = document.getElementById('cd-num');
+  const sub = document.getElementById('cd-sub');
+  ov.classList.add('on');
 
-  // Helper: update number display with fresh animation
-  function setCD(text, cls, subText) {
-    cdNum.className    = cls;
-    cdNum.textContent  = text;
-    cdSub.textContent  = subText;
-    // Restart animation by clone trick
-    const clone = cdNum.cloneNode(true);
-    cdNum.parentNode.replaceChild(clone, cdNum);
-    // Reassign reference
-    Object.defineProperty(window, '__cdNum', { value: clone, configurable:true });
+  const setNum = (txt, cls, subTxt) => {
+    num.textContent = txt;
+    num.className   = cls + ' cd-pop';
+    sub.textContent = subTxt;
+    // Restart CSS animation
+    num.style.animation='none'; void num.offsetWidth; num.style.animation='';
+  };
+
+  setNum('3','cd-3','ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
+  await ms(900);
+  setNum('2','cd-2','ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
+  await ms(900);
+  setNum('1','cd-1','ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
+  await ms(900);
+  setNum('GO!','cd-go','🍭 သကြားလုံးများ ရွှေ့ပါ!'); sfx('strip');
+  await ms(750);
+
+  ov.classList.remove('on');
+}
+
+/* ══════════════════════════════════════════════════════
+   GRID — cells built ONCE
+══════════════════════════════════════════════════════ */
+function buildGrid() {
+  const g = document.getElementById('grid');
+  g.innerHTML = '';
+  cells = [];
+  for (let r=0;r<ROWS;r++) {
+    cells.push([]);
+    for (let c=0;c<COLS;c++) {
+      const div = document.createElement('div');
+      div.className='cell';
+      div.dataset.r=r; div.dataset.c=c;
+      const img = document.createElement('img');
+      img.draggable=false;
+      div.appendChild(img);
+      // Events bound once
+      let tr=-1,tc=-1;
+      div.addEventListener('touchstart',e=>{tr=r;tc=c;e.preventDefault();},{passive:false});
+      div.addEventListener('touchend',  e=>{if(tr===r&&tc===c)tap(r,c);e.preventDefault();},{passive:false});
+      div.addEventListener('click',     ()=>tap(r,c));
+      g.appendChild(div);
+      cells[r].push(div);
+    }
   }
-
-  // 3
-  setCD('3', 'cd-num-3', 'ကစားရန် အသင့်ဖြစ်ပါ...');
-  sfxPlay('btn');
-  await sleep(900);
-
-  // 2
-  const n3 = overlay.querySelector('#cd-number') || document.getElementById('cd-number');
-  n3.className   = 'cd-num-2';
-  n3.textContent = '2';
-  sfxPlay('btn');
-  await sleep(900);
-
-  // 1
-  n3.className   = 'cd-num-1';
-  n3.textContent = '1';
-  sfxPlay('btn');
-  await sleep(900);
-
-  // GO!
-  n3.className   = 'cd-num-go';
-  n3.textContent = 'GO!';
-  cdSub.textContent = '🍭 သကြားလုံးများ ရွှေ့ပါ!';
-  sfxPlay('strip');
-  await sleep(750);
-
-  overlay.classList.remove('show');
 }
 
-// ═══════════════════════════════════════════════════
-//  GAME INIT (for resumed games, skips countdown)
-// ═══════════════════════════════════════════════════
-function startGame() {
-  document.getElementById('my-name').textContent     = myUserName;
-  document.getElementById('opp-name').textContent    = opponentName;
-  document.getElementById('opp-name-bar').textContent= opponentName;
-  document.getElementById('my-score-val').textContent = String(myScore);
-  document.getElementById('opp-score-val').textContent= String(opponentScore);
-  document.getElementById('opp-score-bar').textContent= String(opponentScore);
-
-  board         = generateBoard();
-  selected      = null;
-  gameActive    = true;
-  isProcessing  = false;
-  timeWarnPlayed= false;
-  fiveSecPlayed = false;
-
-  renderBoard();
-  bgMusicPlay();
-  startTimer();
-  startHintSystem();
-  showScreen('game');
+// Set single cell image (only this changes per update)
+function setImg(r,c,type) {
+  const img = cells[r][c].querySelector('img');
+  if (type>0) { img.src=`assets/p${type}.png`; img.style.opacity='1'; }
+  else          { img.style.opacity='0'; }
 }
 
-// ═══════════════════════════════════════════════════
-//  BOARD GENERATION
-// ═══════════════════════════════════════════════════
-function generateBoard() {
-  const b = [];
-  for (let r=0;r<BOARD_SIZE;r++) {
+// Push all board values to DOM
+function drawAll() {
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) setImg(r,c,board[r][c]);
+}
+
+/* ══════════════════════════════════════════════════════
+   BOARD GENERATION (no 3-in-a-row at start)
+══════════════════════════════════════════════════════ */
+function makeBoard() {
+  const b=[];
+  for (let r=0;r<ROWS;r++) {
     b.push([]);
-    for (let c=0;c<BOARD_SIZE;c++) {
-      let candy, tries=0;
-      do {
-        candy = Math.floor(Math.random()*CANDY_COUNT)+1;
-        tries++;
-      } while(tries<30 && (
-        (c>=2 && b[r][c-1]===candy && b[r][c-2]===candy) ||
-        (r>=2 && b[r-1][c]===candy && b[r-2][c]===candy)
+    for (let c=0;c<COLS;c++) {
+      let t, tries=0;
+      do { t=rc(); tries++; }
+      while(tries<40&&(
+        (c>=2&&b[r][c-1]===t&&b[r][c-2]===t)||
+        (r>=2&&b[r-1][c]===t&&b[r-2][c]===t)
       ));
-      b[r].push(candy);
+      b[r].push(t);
     }
   }
   return b;
 }
+const rc = ()=>1+Math.floor(Math.random()*N_CANDY);
 
-// ═══════════════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════════════
-function renderBoard(fallingCells=new Set()) {
-  const grid = document.getElementById('candy-grid');
-  grid.innerHTML = '';
-  for (let r=0;r<BOARD_SIZE;r++) {
-    for (let c=0;c<BOARD_SIZE;c++) {
-      const cell = document.createElement('div');
-      cell.className = 'candy-cell';
-      cell.dataset.r = r;
-      cell.dataset.c = c;
+/* ══════════════════════════════════════════════════════
+   TAP / CLICK
+══════════════════════════════════════════════════════ */
+function tap(r,c) {
+  if (!gameOn||busy) return;
+  if (!board[r][c]) return;
+  resetHint(); sfx('btn');
 
-      if (board[r][c] > 0) {
-        const img = document.createElement('img');
-        img.src = `assets/p${board[r][c]}.png`;
-        img.className = 'candy-img';
-        img.draggable = false;
-        cell.appendChild(img);
-      }
-      if (selected && selected.r===r && selected.c===c) cell.classList.add('selected');
-      if (fallingCells.has(`${r},${c}`)) cell.classList.add('falling');
+  if (!sel) { sel={r,c}; cells[r][c].classList.add('sel'); return; }
+  if (sel.r===r&&sel.c===c) { cells[r][c].classList.remove('sel'); sel=null; return; }
 
-      cell.addEventListener('click', () => handleCellClick(r, c));
-      cell.addEventListener('touchend', (e) => { e.preventDefault(); handleCellClick(r,c); }, {passive:false});
-
-      grid.appendChild(cell);
-    }
-  }
-}
-
-// ═══════════════════════════════════════════════════
-//  HINT SYSTEM
-// ═══════════════════════════════════════════════════
-function startHintSystem() {
-  stopHintSystem();
-  lastMoveTime = Date.now();
-  hintInterval = setInterval(checkHint, 1000);
-}
-
-function stopHintSystem() {
-  clearInterval(hintInterval);
-  hintInterval = null;
-  clearHintHighlight();
-  hideHintToast();
-}
-
-function resetHintTimer() {
-  lastMoveTime = Date.now();
-  clearHintHighlight();
-  hideHintToast();
-}
-
-function checkHint() {
-  if (!gameActive || isProcessing) return;
-  const idle = Date.now() - lastMoveTime;
-  if (idle >= HINT_IDLE_MS) {
-    showHint();
-  }
-}
-
-function showHint() {
-  clearHintHighlight();
-  const move = findAnyValidMove();
-  if (!move) return;
-  hintCells = [move.from, move.to];
-  // Highlight both cells
-  hintCells.forEach(({r,c}) => {
-    const cell = getCellEl(r,c);
-    if (cell) cell.classList.add('hint');
-  });
-  // Show hint toast
-  showHintToast();
-}
-
-function clearHintHighlight() {
-  if (!hintCells.length) return;
-  hintCells.forEach(({r,c}) => {
-    const cell = getCellEl(r,c);
-    if (cell) cell.classList.remove('hint');
-  });
-  hintCells = [];
-}
-
-function showHintToast() {
-  const el = document.getElementById('hint-toast');
-  el.classList.add('show');
-  clearTimeout(hintToastTimer);
-  hintToastTimer = setTimeout(hideHintToast, 3000);
-}
-
-function hideHintToast() {
-  document.getElementById('hint-toast').classList.remove('show');
-}
-
-function getCellEl(r, c) {
-  return document.querySelector(`#candy-grid .candy-cell[data-r="${r}"][data-c="${c}"]`);
-}
-
-// Find any valid swap (horizontal or vertical neighbor that creates a match)
-function findAnyValidMove() {
-  for (let r=0;r<BOARD_SIZE;r++) {
-    for (let c=0;c<BOARD_SIZE;c++) {
-      // Try right
-      if (c+1<BOARD_SIZE) {
-        [board[r][c],board[r][c+1]]=[board[r][c+1],board[r][c]];
-        const ok = findMatches().length > 0;
-        [board[r][c],board[r][c+1]]=[board[r][c+1],board[r][c]];
-        if (ok) return {from:{r,c},to:{r,c:c+1}};
-      }
-      // Try down
-      if (r+1<BOARD_SIZE) {
-        [board[r][c],board[r+1][c]]=[board[r+1][c],board[r][c]];
-        const ok = findMatches().length > 0;
-        [board[r][c],board[r+1][c]]=[board[r+1][c],board[r][c]];
-        if (ok) return {from:{r,c},to:{r:r+1,c}};
-      }
-    }
-  }
-  return null;
-}
-
-// ═══════════════════════════════════════════════════
-//  CLICK HANDLER
-// ═══════════════════════════════════════════════════
-function handleCellClick(r, c) {
-  if (!gameActive || isProcessing) return;
-  if (board[r][c] === 0) return;
-
-  // Any click resets hint timer
-  resetHintTimer();
-  sfxPlay('btn');
-
-  if (!selected) {
-    selected = {r,c};
-    renderBoard();
-    return;
-  }
-  if (selected.r===r && selected.c===c) {
-    selected = null;
-    renderBoard();
-    return;
-  }
-
-  const dr = Math.abs(selected.r-r);
-  const dc = Math.abs(selected.c-c);
-
+  const dr=Math.abs(sel.r-r), dc=Math.abs(sel.c-c);
   if (dr+dc===1) {
-    const from = {...selected};
-    selected = null;
-    doSwap(from.r, from.c, r, c);
+    const f=sel; sel=null; cells[f.r][f.c].classList.remove('sel');
+    doSwap(f.r,f.c,r,c);
   } else {
-    selected = {r,c};
-    renderBoard();
+    cells[sel.r][sel.c].classList.remove('sel');
+    sel={r,c}; cells[r][c].classList.add('sel');
   }
 }
 
-// ═══════════════════════════════════════════════════
-//  SWAP
-// ═══════════════════════════════════════════════════
-async function doSwap(r1, c1, r2, c2) {
-  if (isProcessing) return;
-  isProcessing = true;
-
+/* ══════════════════════════════════════════════════════
+   SWAP  — always releases busy in finally
+══════════════════════════════════════════════════════ */
+async function doSwap(r1,c1,r2,c2) {
+  busy=true;
   try {
-    [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
-    renderBoard();
+    swap(r1,c1,r2,c2);
+    setImg(r1,c1,board[r1][c1]); setImg(r2,c2,board[r2][c2]);
+    addTmp(cells[r1][c1],'swpd',220); addTmp(cells[r2][c2],'swpd',220);
+    await ms(220);
 
-    const matches = findMatches();
-    if (matches.length === 0) {
+    if (!findMatches().length) {
       // Invalid
-      sfxPlay('invalid');
-      await sleep(180);
-      [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
-      renderBoard();
-    } else {
-      // Valid
-      sfxPlay('swap');
-      lastMoveTime = Date.now();
-      clearHintHighlight();
-      await processAllMatches();
+      sfx('invalid');
+      swap(r1,c1,r2,c2);
+      setImg(r1,c1,board[r1][c1]); setImg(r2,c2,board[r2][c2]);
+      addTmp(cells[r1][c1],'shake',260); addTmp(cells[r2][c2],'shake',260);
+      await ms(260);
+      return;
     }
+
+    sfx('swap'); lastMove=Date.now(); clearHint();
+    await cascade();
   } finally {
-    isProcessing = false;
+    busy=false; // ALWAYS unlock
   }
 }
 
-// ═══════════════════════════════════════════════════
-//  MATCH DETECTION
-// ═══════════════════════════════════════════════════
-function findMatches() {
-  const toRemove = new Set();
-  for (let r=0;r<BOARD_SIZE;r++) {
-    for (let c=0;c<BOARD_SIZE-2;c++) {
-      const t=board[r][c];
-      if (!t) continue;
-      if (t===board[r][c+1] && t===board[r][c+2]) {
-        let len=3;
-        while(c+len<BOARD_SIZE && board[r][c+len]===t) len++;
-        for (let i=0;i<len;i++) toRemove.add(`${r},${c+i}`);
-        c+=len-1;
-      }
-    }
-  }
-  for (let c=0;c<BOARD_SIZE;c++) {
-    for (let r=0;r<BOARD_SIZE-2;r++) {
-      const t=board[r][c];
-      if (!t) continue;
-      if (t===board[r+1][c] && t===board[r+2][c]) {
-        let len=3;
-        while(r+len<BOARD_SIZE && board[r+len][c]===t) len++;
-        for (let i=0;i<len;i++) toRemove.add(`${r+i},${c}`);
-        r+=len-1;
-      }
-    }
-  }
-  return [...toRemove].map(s=>{const[r,c]=s.split(',').map(Number);return{r,c};});
-}
+function swap(r1,c1,r2,c2){ [board[r1][c1],board[r2][c2]]=[board[r2][c2],board[r1][c1]]; }
 
-// ═══════════════════════════════════════════════════
-//  CASCADE (process all matches loop)
-// ═══════════════════════════════════════════════════
-async function processAllMatches() {
-  let totalPts=0, combo=0;
-
+/* ══════════════════════════════════════════════════════
+   CASCADE
+══════════════════════════════════════════════════════ */
+async function cascade() {
+  let combo=0, earned=0;
   while(true) {
-    const matches = findMatches();
-    if (!matches.length) break;
-
+    const m=findMatches(); if (!m.length) break;
     combo++;
-    const pts = matches.length * 10 * (combo>1?combo:1);
-    totalPts += pts;
+    earned += m.length * PTS_CANDY * (combo>1?combo:1);
 
-    // Sound: combo or regular match
-    if (combo >= 3)     sfxPlay('strip');
-    else if (combo >= 2) sfxPlay('combo');
-    else                 sfxPlay('match');
+    // Sound selection
+    if (combo>=3)      sfx('strip');
+    else if (combo>=2) sfx('combo');
+    else               sfx('match');
 
     // Explode
-    const explodingSet = new Set(matches.map(m=>`${m.r},${m.c}`));
-    renderBoardWithExploding(explodingSet);
-    await sleep(350);
-
-    // Remove
-    for (const {r,c} of matches) board[r][c]=0;
+    m.forEach(({r,c})=>cells[r][c].classList.add('exploding'));
+    await ms(320);
+    m.forEach(({r,c})=>{cells[r][c].classList.remove('exploding');board[r][c]=0;setImg(r,c,0);});
 
     // Gravity
-    const newlyFallen = applyGravity();
-    renderBoard(newlyFalled(newlyFallen));
-    await sleep(280);
+    const fell=gravity();
+    fell.forEach(({r,c})=>{setImg(r,c,board[r][c]);addTmp(cells[r][c],'fallin',340);});
+    await ms(340);
   }
 
-  if (totalPts > 0) {
-    myScore += totalPts;
-    updateMyScore();
-    showScorePop(totalPts);
-    if (socket && myGameId) socket.emit('scoreUpdate',{gameId:myGameId,score:myScore});
-  }
-}
-
-function newlyFalled(cells) {
-  return new Set(cells.map(c=>`${c.r},${c.c}`));
-}
-
-function renderBoardWithExploding(explodingSet) {
-  const grid = document.getElementById('candy-grid');
-  grid.innerHTML = '';
-  for (let r=0;r<BOARD_SIZE;r++) {
-    for (let c=0;c<BOARD_SIZE;c++) {
-      const cell = document.createElement('div');
-      cell.className = 'candy-cell';
-      if (board[r][c]>0) {
-        const img=document.createElement('img');
-        img.src=`assets/p${board[r][c]}.png`;
-        img.className='candy-img';
-        img.draggable=false;
-        cell.appendChild(img);
-      }
-      if (explodingSet.has(`${r},${c}`)) cell.classList.add('exploding');
-      grid.appendChild(cell);
-    }
+  if (earned>0) {
+    myScore+=earned;
+    document.getElementById('my-sc').textContent=myScore;
+    popScore(earned);
+    socket?.emit('scoreUpdate',{gameId,score:myScore});
   }
 }
 
-// ═══════════════════════════════════════════════════
-//  GRAVITY
-// ═══════════════════════════════════════════════════
-function applyGravity() {
+/* ══════════════════════════════════════════════════════
+   MATCH DETECTION
+══════════════════════════════════════════════════════ */
+function findMatches() {
+  const s=new Set();
+  for (let r=0;r<ROWS;r++) {
+    let c=0;
+    while(c<COLS){const t=board[r][c];if(!t){c++;continue;}let n=1;while(c+n<COLS&&board[r][c+n]===t)n++;if(n>=3)for(let i=0;i<n;i++)s.add(`${r},${c+i}`);c+=n;}
+  }
+  for (let c=0;c<COLS;c++) {
+    let r=0;
+    while(r<ROWS){const t=board[r][c];if(!t){r++;continue;}let n=1;while(r+n<ROWS&&board[r+n][c]===t)n++;if(n>=3)for(let i=0;i<n;i++)s.add(`${r+i},${c}`);r+=n;}
+  }
+  return [...s].map(x=>{const[r,c]=x.split(',').map(Number);return{r,c};});
+}
+
+/* ══════════════════════════════════════════════════════
+   GRAVITY
+══════════════════════════════════════════════════════ */
+function gravity() {
   const fell=[];
-  for (let c=0;c<BOARD_SIZE;c++) {
-    let emptyRow=BOARD_SIZE-1;
-    for (let r=BOARD_SIZE-1;r>=0;r--) {
-      if (board[r][c]!==0) {
-        if (emptyRow!==r) { board[emptyRow][c]=board[r][c]; board[r][c]=0; fell.push({r:emptyRow,c}); }
-        emptyRow--;
-      }
-    }
-    for (let r=emptyRow;r>=0;r--) {
-      board[r][c]=Math.floor(Math.random()*CANDY_COUNT)+1;
-      fell.push({r,c});
-    }
+  for (let c=0;c<COLS;c++) {
+    const kept=[];
+    for (let r=ROWS-1;r>=0;r--) if(board[r][c])kept.push(board[r][c]);
+    const col=[...Array(ROWS-kept.length).fill(0).map(()=>rc()), ...kept.reverse()];
+    for (let r=0;r<ROWS;r++) if(board[r][c]!==col[r]){board[r][c]=col[r];fell.push({r,c});}
   }
   return fell;
 }
 
-// ═══════════════════════════════════════════════════
-//  SCORE UI
-// ═══════════════════════════════════════════════════
-function updateMyScore() {
-  document.getElementById('my-score-val').textContent = myScore;
+/* ══════════════════════════════════════════════════════
+   HINT SYSTEM  (10s inactivity)
+══════════════════════════════════════════════════════ */
+function startHint() {
+  stopHint(); lastMove=Date.now();
+  hintInt=setInterval(()=>{
+    if (!gameOn||busy) return;
+    if (Date.now()-lastMove>=HINT_IDLE) showHint();
+  },1000);
 }
-function updateOpponentScore() {
-  document.getElementById('opp-score-val').textContent = opponentScore;
-  document.getElementById('opp-score-bar').textContent = opponentScore;
-  document.getElementById('opp-status').textContent = '🟢';
+function stopHint() { clearInterval(hintInt); hintInt=null; clearHint(); hideHintBar(); }
+function resetHint() { lastMove=Date.now(); clearHint(); hideHintBar(); }
+
+function showHint() {
+  clearHint();
+  const move=findAnyMove(); if (!move) return;
+  hintCells=[move.from,move.to];
+  hintCells.forEach(({r,c})=>cells[r]?.[c]?.classList.add('hint'));
+  showHintBar();
 }
-function showScorePop(pts) {
-  const el=document.createElement('div');
-  el.className='score-pop';
-  el.textContent=`+${pts}`;
-  el.style.left=Math.random()*60+20+'%';
-  el.style.top =Math.random()*30+30+'%';
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),850);
+function clearHint() {
+  hintCells.forEach(({r,c})=>cells[r]?.[c]?.classList.remove('hint'));
+  hintCells=[];
+}
+function showHintBar() {
+  clearTimeout(hintTimer);
+  document.getElementById('hint-bar').classList.add('on');
+  hintTimer=setTimeout(hideHintBar,3500);
+}
+function hideHintBar() { document.getElementById('hint-bar').classList.remove('on'); }
+
+// Scan board for any valid swap (returns {from,to} or null)
+function findAnyMove() {
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    if (c+1<COLS) { swap(r,c,r,c+1); const ok=findMatches().length>0; swap(r,c,r,c+1); if(ok)return{from:{r,c},to:{r,c:c+1}}; }
+    if (r+1<ROWS) { swap(r,c,r+1,c); const ok=findMatches().length>0; swap(r,c,r+1,c); if(ok)return{from:{r,c},to:{r:r+1,c}}; }
+  }
+  return null;
 }
 
-// ═══════════════════════════════════════════════════
-//  TIMER
-// ═══════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════════════════ */
 function startTimer() {
-  clearInterval(timerInterval);
-  updateTimerDisplay();
-  timerInterval = setInterval(()=>{
-    timeLeft--;
-    updateTimerDisplay();
-
-    // Audio cues
-    if (timeLeft===30 && !timeWarnPlayed) {
-      timeWarnPlayed=true;
-      sfxPlay('twarn');
-    }
-    if (timeLeft<=5 && timeLeft>0 && !fiveSecPlayed) {
-      fiveSecPlayed=true;
-      sfxPlay('five');
-    }
-
-    if (timeLeft<=0) {
-      clearInterval(timerInterval);
-      gameActive=false;
-      stopHintSystem();
-    }
-  }, 1000);
+  clearInterval(timerInt); renderTimer();
+  timerInt=setInterval(()=>{
+    timeLeft=Math.max(0,timeLeft-1); renderTimer();
+    if (timeLeft===30&&!tWarnPlayed){tWarnPlayed=true;sfx('twarn');}
+    if (timeLeft<=5&&timeLeft>0&&!t5Played){t5Played=true;sfx('five');}
+    if (timeLeft===0){clearInterval(timerInt);gameOn=false;stopHint();}
+  },1000);
+}
+function renderTimer() {
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  const el=document.getElementById('timer');
+  el.textContent=`${m}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('hot',timeLeft<=30);
 }
 
-function updateTimerDisplay() {
-  const m=Math.floor(Math.max(0,timeLeft)/60);
-  const s=Math.max(0,timeLeft)%60;
-  const el=document.getElementById('timer-display');
-  el.textContent=`${m}:${s.toString().padStart(2,'0')}`;
-  if (timeLeft<=30) el.classList.add('urgent');
-  else el.classList.remove('urgent');
+/* ══════════════════════════════════════════════════════
+   RESULT
+══════════════════════════════════════════════════════ */
+function showResult(winner,myF,oppF,reason) {
+  clearInterval(timerInt); stopHint();
+  const win=String(winner)===String(myId);
+  const draw=winner===-1||winner==null;
+  sfx(win?'win':draw?'btn':'lose');
+
+  document.getElementById('r-ic').textContent = win?'🏆':draw?'🤝':'😢';
+  const t=document.getElementById('r-ti');
+  t.textContent = win?'အနိုင်ရသည်! 🎉':draw?'သရေကျသည်':'ရှုံးသွားသည်';
+  t.className='r-ti '+(win?'win':draw?'draw':'lose');
+  document.getElementById('r-my-nm').textContent = myName;
+  document.getElementById('r-op-nm').textContent = oppName;
+  const mEl=document.getElementById('r-my-sc');
+  const oEl=document.getElementById('r-op-sc');
+  mEl.textContent=myF; oEl.textContent=oppF;
+  mEl.className='rs-v'+(win?' hl':'');
+  oEl.className='rs-v'+(!win&&!draw?' hl':'');
+  const p=document.getElementById('r-prz');
+  if (win) p.textContent='🏆 +800 MMK ရွှေငွေ ရပြီ!';
+  else if (draw) p.textContent='🤝 250 MMK ပြန်ရမည်';
+  else if (reason==='disconnect') p.textContent='📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
+  else p.textContent='😢 နောက်တစ်ကြိမ် ကြိုးစားပါ!';
+  show('s-result');
 }
 
-// ═══════════════════════════════════════════════════
-//  RESULT
-// ═══════════════════════════════════════════════════
-function showResult(winner, myFinal, oppFinal, reason) {
-  clearInterval(timerInterval);
-  stopHintSystem();
-
-  const isWin  = winner==myUserId;
-  const isDraw = winner===-1||winner==null;
-
-  // Play win/lose sound
-  if (isWin)      sfxPlay('win');
-  else if (!isDraw) sfxPlay('lose');
-
-  document.getElementById('res-emoji').textContent = isWin?'🏆':isDraw?'🤝':'😢';
-  const titleEl=document.getElementById('res-title');
-  titleEl.textContent = isWin?'ဝင်ငွေ ရပြီ! 🎉':isDraw?'သရေ!':'ရှုံးသွားသည်';
-  titleEl.className = 'res-title '+(isWin?'win':isDraw?'draw':'lose');
-
-  document.getElementById('res-my-name').textContent  = myUserName;
-  document.getElementById('res-opp-name').textContent = opponentName;
-
-  const myScoreEl  = document.getElementById('res-my-score');
-  const oppScoreEl = document.getElementById('res-opp-score');
-  myScoreEl.textContent  = myFinal;
-  oppScoreEl.textContent = oppFinal;
-  myScoreEl.className  = 'rs-score'+(isWin?' highlight':'');
-  oppScoreEl.className = 'rs-score'+(!isWin&&!isDraw?' highlight':'');
-
-  const prizeEl=document.getElementById('res-prize');
-  if (isWin)          prizeEl.textContent='🏆 +800 MMK ရွှေငွေ ရပြီ!';
-  else if (isDraw)    prizeEl.textContent='🤝 ငွေ 250 MMK ပြန်ရမည်';
-  else if (reason==='disconnect') prizeEl.textContent='📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
-  else                prizeEl.textContent='😢 ဆက်ကြိုးစားပါ!';
-
-  showScreen('result');
+/* ══════════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════════ */
+function show(id) {
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id)?.classList.add('on');
 }
-
-// ═══════════════════════════════════════════════════
-//  NAVIGATION
-// ═══════════════════════════════════════════════════
-function showScreen(name) {
-  ['search','game','result'].forEach(s=>{
-    const el=document.getElementById(`screen-${s}`);
-    if (el) el.classList.remove('show');
-  });
-  if (name) document.getElementById(`screen-${name}`)?.classList.add('show');
+function replayGame() {
+  myScore=0;oppScore=0;gameId=null;sel=null;busy=false;clearInterval(timerInt);stopHint();bgStop();doSearch();
 }
+function goHome() { bgStop(); tg?tg.close():(location.href='/'); }
 
-function goToSearch() {
-  myScore=0; opponentScore=0; myGameId=null; selected=null;
-  clearInterval(timerInterval);
-  stopHintSystem();
-  bgMusicStop();
-  showScreen('search');
-  if (socket) socket.emit('findGame',{userId:myUserId});
+/* ══════════════════════════════════════════════════════
+   UTILS
+══════════════════════════════════════════════════════ */
+const ms=t=>new Promise(r=>setTimeout(r,t));
+function addTmp(el,cls,dur){el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),dur);}
+function popScore(pts){
+  const el=document.createElement('div');el.className='scpop';el.textContent=`+${pts}`;
+  el.style.left=(18+Math.random()*58)+'%';el.style.top=(22+Math.random()*38)+'%';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),950);
 }
-
-function goHome() {
-  bgMusicStop();
-  if (tg) tg.close();
-  else window.location.href='/';
-}
-
-// ═══════════════════════════════════════════════════
-//  UTILS
-// ═══════════════════════════════════════════════════
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-let toastTimer=null;
-function showToast(msg, isErr=false) {
-  const toast=document.getElementById('toast');
-  const ti=document.getElementById('ti');
-  ti.textContent=msg;
-  ti.className='ti '+(isErr?'terr':'tok');
-  toast.classList.add('show');
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>toast.classList.remove('show'),2500);
+let _tt=null;
+function toast(msg,err=0){
+  const el=document.getElementById('toast'),ti=document.getElementById('ti');
+  ti.textContent=(err?'⚠️ ':'✅ ')+msg;
+  ti.className='ti '+(err?'terr':'tok');
+  el.classList.add('on');clearTimeout(_tt);
+  _tt=setTimeout(()=>el.classList.remove('on'),2700);
 }
 </script>
 </body>
