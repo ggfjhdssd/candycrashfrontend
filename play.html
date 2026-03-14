@@ -8,9 +8,6 @@
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-/* ════════════════════════════════════
-   BASE
-════════════════════════════════════ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;}
 body{
@@ -22,8 +19,7 @@ body::before{
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
   background:linear-gradient(160deg,rgba(175,0,115,.52)0%,rgba(65,0,95,.62)55%,rgba(15,0,55,.72)100%);
 }
-
-/* ════ LOADER ════ */
+/* LOADER */
 #ldr{
   position:fixed;inset:0;z-index:1000;
   background:linear-gradient(135deg,#e91e8c,#7b1fa2);
@@ -35,8 +31,7 @@ body::before{
 .ldr-tx{font-size:1.75rem;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);}
 .ring{width:36px;height:36px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
-
-/* ════ SCREENS ════ */
+/* SCREENS */
 .scr{
   position:fixed;inset:0;z-index:1;
   display:flex;flex-direction:column;align-items:center;
@@ -45,8 +40,7 @@ body::before{
   transition:opacity .28s ease,visibility .28s;
 }
 .scr.on{visibility:visible;opacity:1;pointer-events:auto;}
-
-/* ════ SEARCH ════ */
+/* SEARCH */
 #s-search{justify-content:center;gap:16px;}
 .s-card{
   background:rgba(255,255,255,.14);backdrop-filter:blur(22px);
@@ -68,11 +62,8 @@ body::before{
   border-radius:14px;color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .18s;
 }
 .btn-cx:active{transform:scale(.96);}
-
-/* ════ GAME SCREEN ════ */
+/* GAME SCREEN */
 #s-game{justify-content:flex-start;gap:0;}
-
-/* Top bar */
 .topbar{
   display:grid;grid-template-columns:1fr 72px 1fr;
   align-items:center;gap:5px;width:100%;max-width:420px;
@@ -89,8 +80,6 @@ body::before{
 .sb-sc{font-size:1.55rem;font-weight:900;line-height:1;color:#ffd700;text-shadow:0 2px 6px rgba(0,0,0,.4);}
 .sbox.opp .sb-sc{color:#ff9de2;}
 .sb-lb{font-size:7px;color:rgba(255,255,255,.45);margin-top:1px;}
-
-/* Timer + Mute */
 .tcol{display:flex;flex-direction:column;align-items:center;gap:3px;}
 .tbox{
   display:flex;flex-direction:column;align-items:center;
@@ -109,7 +98,6 @@ body::before{
 }
 #mute-btn:active{transform:scale(.9);}
 #mute-btn.muted{background:rgba(239,68,68,.25);border-color:rgba(239,68,68,.5);}
-
 /* Board */
 .bwrap{
   position:relative;width:100%;max-width:420px;
@@ -124,8 +112,6 @@ body::before{
   width:100%;aspect-ratio:1;max-height:calc(100vh - 158px);
   position:relative;z-index:3;will-change:transform;
 }
-
-/* ── CELLS ── */
 .cell{
   aspect-ratio:1;position:relative;border-radius:7px;
   background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);
@@ -138,44 +124,32 @@ body::before{
   box-shadow:0 0 14px rgba(255,215,0,.7),inset 0 0 7px rgba(255,215,0,.25);
   transform:scale(1.07);z-index:5;
 }
-
-/* ── HINT glow (10s idle) ── */
 .cell.hint{
   animation:hintGlow .55s ease-in-out infinite alternate;
-  border-color:rgba(255,255,255,.9) !important;z-index:6;
+  border-color:rgba(255,255,255,.9)!important;z-index:6;
 }
 @keyframes hintGlow{
   from{box-shadow:0 0 6px rgba(255,255,255,.4);transform:scale(1);}
-  to  {box-shadow:0 0 18px rgba(255,255,255,.95),0 0 8px rgba(255,215,0,.8);transform:scale(1.1);}
+  to{box-shadow:0 0 18px rgba(255,255,255,.95),0 0 8px rgba(255,215,0,.8);transform:scale(1.1);}
 }
-
 .cell img{
   position:absolute;inset:4%;width:92%;height:92%;
   object-fit:contain;display:block;pointer-events:none;
   will-change:transform,opacity;
   filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
 }
-
-/* Explode */
 @keyframes kExplode{
-  0%  {transform:scale(1);opacity:1;}
-  40% {transform:scale(1.5);opacity:.7;filter:brightness(2.2) drop-shadow(0 0 10px #fff);}
+  0%{transform:scale(1);opacity:1;}
+  40%{transform:scale(1.5);opacity:.7;filter:brightness(2.2) drop-shadow(0 0 10px #fff);}
   100%{transform:scale(0);opacity:0;}
 }
 .cell.exploding img{animation:kExplode .32s ease-out forwards;}
-
-/* Fall-in */
 @keyframes kFall{from{transform:translateY(-115%) scale(.8);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
 .cell.fallin img{animation:kFall .34s cubic-bezier(.22,1.2,.36,1) both;}
-
-/* Swap bounce */
 @keyframes kSwap{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
 .cell.swpd img{animation:kSwap .22s ease-out;}
-
-/* Shake invalid */
 @keyframes kShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .cell.shake{animation:kShake .24s ease-in-out;}
-
 /* Opponent bar */
 .oppbar{
   display:flex;align-items:center;gap:8px;width:100%;max-width:420px;
@@ -188,8 +162,7 @@ body::before{
 .ob-sc{font-size:1.1rem;font-weight:900;color:#ff9de2;}
 .ob-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;transition:background .4s;}
 .ob-dot.live{background:#00e676;}
-
-/* ════ COUNTDOWN OVERLAY ════ */
+/* Countdown */
 #cd-ov{
   position:fixed;inset:0;z-index:500;
   background:rgba(0,0,0,.82);backdrop-filter:blur(10px);
@@ -199,29 +172,19 @@ body::before{
 .cd-vs{
   display:flex;align-items:center;gap:18px;
   background:rgba(255,255,255,.1);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.2);border-radius:20px;padding:14px 22px;
-  margin-bottom:8px;
+  border:2px solid rgba(255,255,255,.2);border-radius:20px;padding:14px 22px;margin-bottom:8px;
 }
 .cd-pl{text-align:center;}
 .cd-av{font-size:2rem;margin-bottom:3px;}
 .cd-pn{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.7);max-width:100px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .cd-vt{font-size:1.5rem;font-weight:900;color:rgba(255,255,255,.45);}
-#cd-num{
-  font-size:7rem;font-weight:900;line-height:1;
-  text-shadow:0 6px 30px rgba(0,0,0,.5);
-  transition:none;
-}
+#cd-num{font-size:7rem;font-weight:900;line-height:1;text-shadow:0 6px 30px rgba(0,0,0,.5);transition:none;}
 .cd-3{color:#ff9de2;}.cd-2{color:#ffd700;}.cd-1{color:#ff6b6b;}
-.cd-go{
-  font-size:4.5rem;font-weight:900;
-  background:linear-gradient(135deg,#ffd700,#ff8c00);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
+.cd-go{font-size:4.5rem;font-weight:900;background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 @keyframes cdPop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}
 .cd-pop{animation:cdPop .35s cubic-bezier(.16,1,.3,1);}
 .cd-sub{font-size:.9rem;font-weight:700;color:rgba(255,255,255,.6);}
-
-/* ════ HINT TOAST ════ */
+/* Hint bar */
 #hint-bar{
   position:fixed;bottom:72px;left:50%;
   transform:translateX(-50%) translateY(50px);
@@ -235,8 +198,7 @@ body::before{
   padding:8px 18px;font-size:12px;font-weight:700;color:#ffd700;
   white-space:nowrap;display:flex;align-items:center;gap:6px;
 }
-
-/* ════ RESULT ════ */
+/* Result */
 #s-result{justify-content:center;}
 .rc{
   background:linear-gradient(135deg,rgba(28,0,52,.97),rgba(68,0,78,.97));
@@ -261,43 +223,31 @@ body::before{
 .r-btn:active{transform:scale(.95);}
 .rb-play{background:linear-gradient(135deg,#e91e8c,#7b1fa2);box-shadow:0 4px 16px rgba(233,30,140,.4);}
 .rb-home{background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.3);}
-
-/* Overlays */
+/* Fake DC */
 #fkdc{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;}
 #fkdc.on{display:flex;}
 .fkdc-c{background:rgba(18,0,38,.97);border:2px solid rgba(233,30,140,.35);border-radius:20px;padding:28px 22px;text-align:center;max-width:268px;}
 .fkdc-ic{font-size:2.5rem;margin-bottom:10px;}
 .fkdc-tx{color:#fff;font-size:.95rem;font-weight:700;line-height:1.55;}
-
 /* Score pop */
 .scpop{position:fixed;pointer-events:none;z-index:600;font-size:1.1rem;font-weight:900;color:#ffd700;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:scpopanim .9s ease-out forwards;}
 @keyframes scpopanim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.5)}}
-
 /* Toast */
 #toast{position:fixed;top:10px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:900;opacity:0;pointer-events:none;transition:all .34s cubic-bezier(.68,-.55,.265,1.55);}
 #toast.on{transform:translateX(-50%) translateY(0);opacity:1;}
 .ti{padding:9px 18px;border-radius:100px;font-size:12px;font-weight:700;backdrop-filter:blur(20px);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);display:flex;align-items:center;gap:6px;}
 .tok{background:rgba(0,200,83,.9);color:#fff;}.terr{background:rgba(239,68,68,.9);color:#fff;}
-
 #jerry{position:fixed;right:5px;bottom:52px;width:46px;z-index:4;pointer-events:none;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45));animation:jw 2.5s ease-in-out infinite;}
 @keyframes jw{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg) scale(1.07)}}
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
 <div id="ldr"><div class="ldr-ic">🍭</div><div class="ldr-tx">Candy Crush</div><div class="ring"></div></div>
-
-<!-- TOAST -->
 <div id="toast"><div class="ti" id="ti"></div></div>
-
-<!-- HINT BAR -->
 <div id="hint-bar"><div class="hb-inner">💡 တောက်ပနေသောသကြားလုံး ၂ ခုကို ရွှေ့ပါ!</div></div>
-
-<!-- FAKE DC -->
 <div id="fkdc"><div class="fkdc-c"><div class="fkdc-ic">📡</div><div class="fkdc-tx" id="fkdc-msg">ချိတ်ဆက်မှု ပြဿနာ...</div><div class="ring" style="margin:12px auto 0;"></div></div></div>
 
-<!-- COUNTDOWN OVERLAY (covers pre-rendered board) -->
 <div id="cd-ov">
   <div class="cd-vs">
     <div class="cd-pl"><div class="cd-av">🙋</div><div class="cd-pn" id="cd-me">ကိုယ်</div></div>
@@ -308,10 +258,8 @@ body::before{
   <div class="cd-sub" id="cd-sub">ကစားရန် အသင့်ဖြစ်ပါ...</div>
 </div>
 
-<!-- JERRY -->
 <img id="jerry" src="assets/jerry.png" alt="" onerror="this.remove()">
 
-<!-- SEARCH -->
 <div class="scr" id="s-search">
   <div class="s-card">
     <div class="sc-ic">🍭</div>
@@ -323,7 +271,6 @@ body::before{
   <button class="btn-cx" onclick="cancelSearch()">❌ ဖျက်သိမ်းမည်</button>
 </div>
 
-<!-- GAME -->
 <div class="scr" id="s-game">
   <div class="topbar">
     <div class="sbox me"><div class="sb-nm" id="my-nm">ကိုယ်</div><div class="sb-sc" id="my-sc">0</div><div class="sb-lb">မှတ်</div></div>
@@ -345,7 +292,6 @@ body::before{
   </div>
 </div>
 
-<!-- RESULT -->
 <div class="scr" id="s-result">
   <div class="rc">
     <span class="r-ic" id="r-ic">🏆</span>
@@ -363,116 +309,97 @@ body::before{
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    CONFIG
-══════════════════════════════════════════════════════ */
-const BACKEND     = 'https://candycrashbackend.onrender.com';
-const ROWS        = 8;
-const COLS        = 8;
-const N_CANDY     = 9;
-const GAME_SEC    = 180;
-const HINT_IDLE   = 10000;   // 10s without a move → show hint
-const PTS_CANDY   = 10;
+══════════════════════════════════════════════ */
+const BACKEND   = 'https://candycrashbackend.onrender.com';
+const ROWS      = 8;
+const COLS      = 8;
+const N_CANDY   = 9;
+const GAME_SEC  = 180;
+const HINT_IDLE = 10000;
+const PTS_CANDY = 10;
 
-/* ══════════════════════════════════════════════════════
-   ██ WEB AUDIO ENGINE ██
-   Dual strategy:
-   • Background music → HTMLAudioElement (loop-safe, no memory leak)
-   • SFX → AudioContext + fetch+decodeAudioData (MIME-bypass, low latency)
-══════════════════════════════════════════════════════ */
-/* ─────────────────────────────────────────────────────
-   AUDIO FILE MAP  (all .ogg.ogx renamed → .ogg)
-   Strategy: HTMLAudioElement for bg loop (memory-safe),
-             fetch+decodeAudioData for SFX (MIME-bypass)
-───────────────────────────────────────────────────── */
-const AudioFiles = {
-  bg:      'audio/bgmusic.mp3',          // ← MP3, HTMLAudio loop
-  swap:    'audio/Switch_sound1.ogg',
-  invalid: 'audio/Negative_switch_sound1.ogg',
-  match:   'audio/Candy_land4.ogg',
-  combo:   'audio/Combo_sound3.ogg',
-  btn:     'audio/Button_press.ogg',
-  win:     'audio/Win.ogg',
-  lose:    'audio/Lose.ogg',
-  twarn:   'audio/Time_warning.ogg',
-  five:    'audio/5_seconds_left_flash_version.wav',
-  strip:   'audio/Striped_candy_created1.ogg',
+/* ══════════════════════════════════════════════
+   ██ AUDIO ENGINE ██
+
+   Root-cause of "မကြားရ" bug:
+   ─ File extension မှားနေတာ (.ogg.ogx) → fixed → .mp3
+   ─ AudioContext autoplay block on mobile → fixed below
+   ─ Async init race: _bgEl null when bgPlay() called → fixed
+
+   Strategy (simplest & most reliable for mobile):
+   ─ HTMLAudioElement for EVERYTHING (bg + all SFX)
+   ─ All Audio objects created at page-load (no async needed)
+   ─ audioUnlock() called explicitly on "Find Game" gesture
+     → plays a 0-volume dummy sound to unlock the audio stack
+     → after that, all .play() calls work immediately
+══════════════════════════════════════════════ */
+
+// ── Audio file map (all .mp3 now) ──
+const SND = {
+  bg:      new Audio('audio/bgmusic.mp3'),
+  swap:    new Audio('audio/Switch_sound1.mp3'),
+  invalid: new Audio('audio/Negative_switch_sound1.mp3'),
+  match:   new Audio('audio/Candy_land4.mp3'),
+  combo:   new Audio('audio/Combo_sound3.mp3'),
+  btn:     new Audio('audio/Button_press.mp3'),
+  win:     new Audio('audio/Win.mp3'),
+  lose:    new Audio('audio/Lose.mp3'),
+  twarn:   new Audio('audio/Time_warning.mp3'),
+  five:    new Audio('audio/5_seconds_left_flash_version.wav'),
+  strip:   new Audio('audio/Striped_candy_created1.mp3'),
 };
-const AudioVolume = {
+
+// Volume settings
+const VOL = {
   bg:.32, swap:.75, invalid:.65, match:.75,
   combo:.82, btn:.5, win:.88, lose:.78,
   twarn:.72, five:.82, strip:.72,
 };
 
-// ── Audio state ──
-let _ctx      = null;   // Web AudioContext (SFX)
-let _bufs     = {};     // decoded AudioBuffers keyed by id
-let _bgEl     = null;   // HTMLAudioElement for bg loop
+// Apply volumes & configure bg loop
+Object.entries(SND).forEach(([id, el]) => {
+  el.volume  = VOL[id] ?? 0.75;
+  el.preload = 'auto';
+});
+SND.bg.loop = true;
+
 let _muted    = false;
-let _ready    = false;  // SFX buffers loaded
-let _initing  = false;
+let _unlocked = false;  // has user gesture unlocked audio?
 
-// ── Init: create AudioContext + decode all SFX in parallel ──
-// Called on first user gesture (mobile requires gesture before audio)
-async function initAudio() {
-  if (_ctx || _initing) return;
-  _initing = true;
-  try {
-    _ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (_ctx.state === 'suspended') await _ctx.resume();
-
-    // Load SFX via fetch+decodeAudioData — works for ANY extension (.ogg, .ogx, .wav)
-    // because decodeAudioData reads raw bytes, not MIME type
-    const sfxKeys = Object.keys(AudioFiles).filter(k => k !== 'bg');
-    await Promise.allSettled(sfxKeys.map(async id => {
-      try {
-        const res  = await fetch(AudioFiles[id]);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const buf  = await res.arrayBuffer();
-        _bufs[id]  = await _ctx.decodeAudioData(buf);
-        console.log('[SFX] loaded:', id);
-      } catch(e) {
-        console.warn('[SFX] skip:', id, e.message);
-      }
-    }));
-
-    // Background music via HTMLAudioElement (reliable loop on mobile)
-    _bgEl = new Audio(AudioFiles.bg);
-    _bgEl.loop    = true;
-    _bgEl.volume  = AudioVolume.bg;
-    _bgEl.preload = 'auto';
-
-    _ready = true;
-    console.log('[Audio] ready. SFX:', Object.keys(_bufs).join(', '));
-  } catch(e) {
-    console.warn('[Audio] init error:', e);
-  }
-  _initing = false;
+// ── audioUnlock: call this INSIDE a user-gesture handler ──
+// Plays and immediately pauses every sound at volume=0
+// This "primes" the browser's audio stack so future .play() calls work
+function audioUnlock() {
+  if (_unlocked) return;
+  _unlocked = true;
+  Object.values(SND).forEach(el => {
+    const v = el.volume;
+    el.volume = 0;
+    const p = el.play();
+    if (p) p.then(() => { el.pause(); el.currentTime = 0; el.volume = v; }).catch(() => { el.volume = v; });
+  });
+  console.log('[Audio] unlocked');
 }
 
-// ── Play SFX (one-shot, non-blocking) ──
+// ── sfx: play a one-shot sound effect ──
 function sfx(id) {
-  if (_muted || !_ctx || !_bufs[id]) return;
+  if (_muted || !SND[id]) return;
   try {
-    const src  = _ctx.createBufferSource();
-    src.buffer = _bufs[id];
-    const gain = _ctx.createGain();
-    gain.gain.value = AudioVolume[id] ?? 0.75;
-    src.connect(gain);
-    gain.connect(_ctx.destination);
-    src.start(0);
+    SND[id].currentTime = 0;
+    SND[id].play().catch(() => {});
   } catch(e) {}
 }
 
-// ── Background music ──
+// ── bgPlay / bgStop ──
 function bgPlay() {
-  if (_muted || !_bgEl) return;
-  _bgEl.currentTime = 0;
-  _bgEl.play().catch(()=>{});
+  if (_muted) return;
+  SND.bg.currentTime = 0;
+  SND.bg.play().catch(() => {});
 }
 function bgStop() {
-  if (!_bgEl) return;
-  try { _bgEl.pause(); _bgEl.currentTime = 0; } catch(e){}
+  try { SND.bg.pause(); SND.bg.currentTime = 0; } catch(e) {}
 }
 
 // ── Mute toggle ──
@@ -481,52 +408,44 @@ function toggleMute() {
   const btn = document.getElementById('mute-btn');
   if (_muted) {
     bgStop();
+    // Mute all SFX elements too
+    Object.values(SND).forEach(el => el.volume = 0);
     btn.textContent = '🔇';
     btn.classList.add('muted');
   } else {
+    // Restore volumes
+    Object.entries(SND).forEach(([id, el]) => el.volume = VOL[id] ?? 0.75);
     bgPlay();
     btn.textContent = '🔊';
     btn.classList.remove('muted');
   }
 }
 
-// ── Unlock on first gesture (iOS/Android requirement) ──
-function unlockAudio() {
-  // Resume suspended context (Chrome autoplay policy)
-  if (_ctx && _ctx.state === 'suspended') _ctx.resume().catch(()=>{});
-  // If not inited yet, init now
-  if (!_ctx && !_initing) initAudio();
-}
-document.addEventListener('touchstart', unlockAudio, {once:false, passive:true});
-document.addEventListener('click',      unlockAudio, {once:false, passive:true});
-
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    GAME STATE
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 let socket, myId, myName='', gameId, oppId, oppName='';
 let myScore=0, oppScore=0, timeLeft=GAME_SEC;
 let timerInt=null, gameOn=false;
 let board=[], cells=[];
 let busy=false, sel=null;
 
-// Hint state
+// Hint
 let lastMove=0, hintInt=null, hintCells=[], hintTimer=null;
-
-// Timer audio flags
+// Timer flags
 let tWarnPlayed=false, t5Played=false;
 
 const tg = window.Telegram?.WebApp;
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    BOOT
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 addEventListener('DOMContentLoaded', async () => {
   tg?.expand();
-
   try {
     const r = await fetch(`${BACKEND}/api/auth`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({initData:tg?.initData||'', telegramId:tg?.initDataUnsafe?.user?.id})
+      body: JSON.stringify({initData:tg?.initData||'', telegramId:tg?.initDataUnsafe?.user?.id})
     });
     const d = await r.json();
     if (d.error) { toast(d.error,1); return; }
@@ -540,16 +459,16 @@ addEventListener('DOMContentLoaded', async () => {
 });
 
 function hideLdr() {
-  const l=document.getElementById('ldr');
-  l.style.opacity='0';
-  setTimeout(()=>l.remove(), 420);
+  const l = document.getElementById('ldr');
+  l.style.opacity = '0';
+  setTimeout(() => l.remove(), 420);
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    SOCKET
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 function connectSocket() {
-  const jp = new URLSearchParams(location.search).get('join')||'';
+  const jp = new URLSearchParams(location.search).get('join') || '';
   socket = io(BACKEND, {transports:['websocket','polling'], query:{join:jp}});
 
   socket.on('waitingForPlayer', ({gameId:gid}) => { gameId=gid; show('s-search'); });
@@ -566,15 +485,16 @@ function connectSocket() {
   socket.on('gameResumed', d => {
     gameId   = d.gameId;
     oppId    = d.opponentId;
-    oppName  = d.players?.[d.opponentId]||'ဆော့ဖော်';
-    timeLeft = Math.max(0,Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
-    myScore  = d.myScore||0; oppScore = d.opponentScore||0;
-    startGame(true); // skip countdown on resume
+    oppName  = d.players?.[d.opponentId] || 'ဆော့ဖော်';
+    timeLeft = Math.max(0, Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
+    myScore  = d.myScore||0;
+    oppScore = d.opponentScore||0;
+    startGame();
   });
 
   socket.on('opponentScore', ({score}) => {
     oppScore = score;
-    document.getElementById('opp-sc').textContent   = oppScore;
+    document.getElementById('opp-sc').textContent    = oppScore;
     document.getElementById('opp-bar-sc').textContent = oppScore;
     document.getElementById('opp-dot').classList.add('live');
   });
@@ -586,93 +506,93 @@ function connectSocket() {
 
   socket.on('fakeDisconnect', ({message}) => {
     busy=true; gameOn=false; clearInterval(timerInt); stopHint(); bgStop();
-    document.getElementById('fkdc-msg').textContent=message;
+    document.getElementById('fkdc-msg').textContent = message;
     document.getElementById('fkdc').classList.add('on');
   });
 
   socket.on('insufficientBalance', ({balance,required}) => {
-    toast(`ငွေမလုံပါ (${balance}/${required} MMK)`,1);
-    setTimeout(goHome,1800);
+    toast(`ငွေမလုံပါ (${balance}/${required} MMK)`, 1);
+    setTimeout(goHome, 1800);
   });
 
   socket.on('searchCancelled', goHome);
-  socket.on('error', ({msg})=>toast(msg,1));
+  socket.on('error', ({msg}) => toast(msg, 1));
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    SEARCH
-══════════════════════════════════════════════════════ */
-function doSearch() { show('s-search'); socket?.emit('findGame',{userId:myId}); }
-function cancelSearch() { sfx('btn'); socket?.emit('cancelSearch',{userId:myId}); goHome(); }
+   ★ audioUnlock() is called HERE — inside the user's
+     gesture handler (findGame button tap triggers this)
+══════════════════════════════════════════════ */
+function doSearch() {
+  audioUnlock();   // ← unlock audio stack on the gesture that opens search
+  show('s-search');
+  socket?.emit('findGame', {userId:myId});
+}
 
-/* ══════════════════════════════════════════════════════
-   PREPARE GAME  ← Board pre-rendered, THEN countdown
-   This is the key fix: images are in DOM & start loading
-   BEFORE the countdown overlay appears. By GO! all
-   images are loaded → zero flicker.
-══════════════════════════════════════════════════════ */
+function cancelSearch() {
+  sfx('btn');
+  socket?.emit('cancelSearch', {userId:myId});
+  goHome();
+}
+
+/* ══════════════════════════════════════════════
+   PREPARE GAME — pre-render board, then countdown
+══════════════════════════════════════════════ */
 async function prepareGame() {
-  // 1. Reset state
   busy=false; sel=null; gameOn=false;
   myScore=0; oppScore=0; tWarnPlayed=false; t5Played=false;
 
-  // 2. Set UI names
-  document.getElementById('my-nm').textContent     = myName;
-  document.getElementById('opp-nm').textContent    = oppName;
-  document.getElementById('opp-bar-nm').textContent= oppName;
-  document.getElementById('my-sc').textContent     = '0';
-  document.getElementById('opp-sc').textContent    = '0';
-  document.getElementById('opp-bar-sc').textContent= '0';
+  document.getElementById('my-nm').textContent      = myName;
+  document.getElementById('opp-nm').textContent     = oppName;
+  document.getElementById('opp-bar-nm').textContent = oppName;
+  document.getElementById('my-sc').textContent      = '0';
+  document.getElementById('opp-sc').textContent     = '0';
+  document.getElementById('opp-bar-sc').textContent = '0';
   document.getElementById('opp-dot').classList.remove('live');
 
-  // 3. PRE-RENDER board (DOM exists, images start loading now)
+  // Build board + DOM (images start loading now)
   board = makeBoard();
-  buildGrid();      // create DOM cells once
-  drawAll();        // push all candy images to DOM
+  buildGrid();
+  drawAll();
 
-  // 4. Show game screen (board visible underneath countdown)
+  // Show game screen (board underneath countdown overlay)
   show('s-game');
 
-  // 5. Set countdown VS names
   document.getElementById('cd-me').textContent  = myName;
   document.getElementById('cd-opp').textContent = oppName;
 
-  // 6. Ensure audio is loaded (user has already touched screen to find a game)
-  if (!_ready) await initAudio();  // ensure SFX loaded before countdown beeps
-
-  // 7. Start BG music
+  // Start BG music — works because audioUnlock() was already called on gesture
   bgPlay();
 
-  // 8. Show countdown overlay ON TOP of pre-rendered board
   await runCountdown();
 
-  // 9. Countdown done — unlock game!
   gameOn=true; lastMove=Date.now();
   startTimer(); startHint();
 }
 
-/* Skip countdown for resumed games */
-function startGame(skip=false) {
+/* Resumed game — skip countdown */
+function startGame() {
   busy=false; sel=null; gameOn=false;
   tWarnPlayed=false; t5Played=false;
 
-  document.getElementById('my-nm').textContent     = myName;
-  document.getElementById('opp-nm').textContent    = oppName;
-  document.getElementById('opp-bar-nm').textContent= oppName;
-  document.getElementById('my-sc').textContent     = String(myScore);
-  document.getElementById('opp-sc').textContent    = String(oppScore);
-  document.getElementById('opp-bar-sc').textContent= String(oppScore);
+  document.getElementById('my-nm').textContent      = myName;
+  document.getElementById('opp-nm').textContent     = oppName;
+  document.getElementById('opp-bar-nm').textContent = oppName;
+  document.getElementById('my-sc').textContent      = String(myScore);
+  document.getElementById('opp-sc').textContent     = String(oppScore);
+  document.getElementById('opp-bar-sc').textContent = String(oppScore);
 
   board = makeBoard(); buildGrid(); drawAll();
-  bgPlay();
   show('s-game');
+  bgPlay();
   gameOn=true; lastMove=Date.now();
   startTimer(); startHint();
 }
 
-/* ══════════════════════════════════════════════════════
-   COUNTDOWN  1-2-3-GO!
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   COUNTDOWN 1-2-3-GO!
+══════════════════════════════════════════════ */
 async function runCountdown() {
   const ov  = document.getElementById('cd-ov');
   const num = document.getElementById('cd-num');
@@ -683,25 +603,26 @@ async function runCountdown() {
     num.textContent = txt;
     num.className   = cls + ' cd-pop';
     sub.textContent = subTxt;
-    // Restart CSS animation
-    num.style.animation='none'; void num.offsetWidth; num.style.animation='';
+    num.style.animation = 'none';
+    void num.offsetWidth;
+    num.style.animation = '';
   };
 
-  setNum('3','cd-3','ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
+  setNum('3', 'cd-3', 'ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
   await ms(900);
-  setNum('2','cd-2','ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
+  setNum('2', 'cd-2', 'ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
   await ms(900);
-  setNum('1','cd-1','ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
+  setNum('1', 'cd-1', 'ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
   await ms(900);
-  setNum('GO!','cd-go','🍭 သကြားလုံးများ ရွှေ့ပါ!'); sfx('strip');
+  setNum('GO!', 'cd-go', '🍭 သကြားလုံးများ ရွှေ့ပါ!'); sfx('strip');
   await ms(750);
 
   ov.classList.remove('on');
 }
 
-/* ══════════════════════════════════════════════════════
-   GRID — cells built ONCE
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   GRID — cells built ONCE, never re-created
+══════════════════════════════════════════════ */
 function buildGrid() {
   const g = document.getElementById('grid');
   g.innerHTML = '';
@@ -710,37 +631,34 @@ function buildGrid() {
     cells.push([]);
     for (let c=0;c<COLS;c++) {
       const div = document.createElement('div');
-      div.className='cell';
-      div.dataset.r=r; div.dataset.c=c;
+      div.className = 'cell';
+      div.dataset.r = r;
+      div.dataset.c = c;
       const img = document.createElement('img');
-      img.draggable=false;
+      img.draggable = false;
       div.appendChild(img);
-      // Events bound once
-      let tr=-1,tc=-1;
-      div.addEventListener('touchstart',e=>{tr=r;tc=c;e.preventDefault();},{passive:false});
-      div.addEventListener('touchend',  e=>{if(tr===r&&tc===c)tap(r,c);e.preventDefault();},{passive:false});
-      div.addEventListener('click',     ()=>tap(r,c));
+      let tr=-1, tc=-1;
+      div.addEventListener('touchstart', e=>{tr=r;tc=c;e.preventDefault();}, {passive:false});
+      div.addEventListener('touchend',   e=>{if(tr===r&&tc===c)tap(r,c);e.preventDefault();}, {passive:false});
+      div.addEventListener('click',      ()=>tap(r,c));
       g.appendChild(div);
       cells[r].push(div);
     }
   }
 }
 
-// Set single cell image (only this changes per update)
 function setImg(r,c,type) {
   const img = cells[r][c].querySelector('img');
   if (type>0) { img.src=`assets/p${type}.png`; img.style.opacity='1'; }
   else          { img.style.opacity='0'; }
 }
-
-// Push all board values to DOM
 function drawAll() {
   for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) setImg(r,c,board[r][c]);
 }
 
-/* ══════════════════════════════════════════════════════
-   BOARD GENERATION (no 3-in-a-row at start)
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   BOARD GENERATION
+══════════════════════════════════════════════ */
 function makeBoard() {
   const b=[];
   for (let r=0;r<ROWS;r++) {
@@ -757,11 +675,11 @@ function makeBoard() {
   }
   return b;
 }
-const rc = ()=>1+Math.floor(Math.random()*N_CANDY);
+const rc = () => 1 + Math.floor(Math.random()*N_CANDY);
 
-/* ══════════════════════════════════════════════════════
-   TAP / CLICK
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   TAP HANDLER
+══════════════════════════════════════════════ */
 function tap(r,c) {
   if (!gameOn||busy) return;
   if (!board[r][c]) return;
@@ -780,11 +698,11 @@ function tap(r,c) {
   }
 }
 
-/* ══════════════════════════════════════════════════════
-   SWAP  — always releases busy in finally
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   SWAP — always unlocks in finally
+══════════════════════════════════════════════ */
 async function doSwap(r1,c1,r2,c2) {
-  busy=true;
+  busy = true;
   try {
     swap(r1,c1,r2,c2);
     setImg(r1,c1,board[r1][c1]); setImg(r2,c2,board[r2][c2]);
@@ -792,7 +710,6 @@ async function doSwap(r1,c1,r2,c2) {
     await ms(220);
 
     if (!findMatches().length) {
-      // Invalid
       sfx('invalid');
       swap(r1,c1,r2,c2);
       setImg(r1,c1,board[r1][c1]); setImg(r2,c2,board[r2][c2]);
@@ -804,192 +721,225 @@ async function doSwap(r1,c1,r2,c2) {
     sfx('swap'); lastMove=Date.now(); clearHint();
     await cascade();
   } finally {
-    busy=false; // ALWAYS unlock
+    busy = false;  // ALWAYS unlock
   }
 }
 
-function swap(r1,c1,r2,c2){ [board[r1][c1],board[r2][c2]]=[board[r2][c2],board[r1][c1]]; }
+function swap(r1,c1,r2,c2) {
+  [board[r1][c1],board[r2][c2]] = [board[r2][c2],board[r1][c1]];
+}
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    CASCADE
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 async function cascade() {
   let combo=0, earned=0;
   while(true) {
-    const m=findMatches(); if (!m.length) break;
+    const m = findMatches();
+    if (!m.length) break;
     combo++;
     earned += m.length * PTS_CANDY * (combo>1?combo:1);
 
-    // Sound selection
     if (combo>=3)      sfx('strip');
     else if (combo>=2) sfx('combo');
     else               sfx('match');
 
-    // Explode
-    m.forEach(({r,c})=>cells[r][c].classList.add('exploding'));
+    m.forEach(({r,c}) => cells[r][c].classList.add('exploding'));
     await ms(320);
-    m.forEach(({r,c})=>{cells[r][c].classList.remove('exploding');board[r][c]=0;setImg(r,c,0);});
+    m.forEach(({r,c}) => {
+      cells[r][c].classList.remove('exploding');
+      board[r][c]=0; setImg(r,c,0);
+    });
 
-    // Gravity
-    const fell=gravity();
-    fell.forEach(({r,c})=>{setImg(r,c,board[r][c]);addTmp(cells[r][c],'fallin',340);});
+    const fell = gravity();
+    fell.forEach(({r,c}) => { setImg(r,c,board[r][c]); addTmp(cells[r][c],'fallin',340); });
     await ms(340);
   }
 
   if (earned>0) {
-    myScore+=earned;
-    document.getElementById('my-sc').textContent=myScore;
+    myScore += earned;
+    document.getElementById('my-sc').textContent = myScore;
     popScore(earned);
-    socket?.emit('scoreUpdate',{gameId,score:myScore});
+    socket?.emit('scoreUpdate', {gameId, score:myScore});
   }
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    MATCH DETECTION
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 function findMatches() {
-  const s=new Set();
+  const s = new Set();
   for (let r=0;r<ROWS;r++) {
     let c=0;
-    while(c<COLS){const t=board[r][c];if(!t){c++;continue;}let n=1;while(c+n<COLS&&board[r][c+n]===t)n++;if(n>=3)for(let i=0;i<n;i++)s.add(`${r},${c+i}`);c+=n;}
+    while(c<COLS) {
+      const t=board[r][c]; if(!t){c++;continue;}
+      let n=1; while(c+n<COLS&&board[r][c+n]===t)n++;
+      if(n>=3) for(let i=0;i<n;i++) s.add(`${r},${c+i}`);
+      c+=n;
+    }
   }
   for (let c=0;c<COLS;c++) {
     let r=0;
-    while(r<ROWS){const t=board[r][c];if(!t){r++;continue;}let n=1;while(r+n<ROWS&&board[r+n][c]===t)n++;if(n>=3)for(let i=0;i<n;i++)s.add(`${r+i},${c}`);r+=n;}
+    while(r<ROWS) {
+      const t=board[r][c]; if(!t){r++;continue;}
+      let n=1; while(r+n<ROWS&&board[r+n][c]===t)n++;
+      if(n>=3) for(let i=0;i<n;i++) s.add(`${r+i},${c}`);
+      r+=n;
+    }
   }
   return [...s].map(x=>{const[r,c]=x.split(',').map(Number);return{r,c};});
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    GRAVITY
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 function gravity() {
   const fell=[];
   for (let c=0;c<COLS;c++) {
     const kept=[];
-    for (let r=ROWS-1;r>=0;r--) if(board[r][c])kept.push(board[r][c]);
+    for (let r=ROWS-1;r>=0;r--) if(board[r][c]) kept.push(board[r][c]);
     const col=[...Array(ROWS-kept.length).fill(0).map(()=>rc()), ...kept.reverse()];
     for (let r=0;r<ROWS;r++) if(board[r][c]!==col[r]){board[r][c]=col[r];fell.push({r,c});}
   }
   return fell;
 }
 
-/* ══════════════════════════════════════════════════════
-   HINT SYSTEM  (10s inactivity)
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   HINT SYSTEM (10s idle)
+══════════════════════════════════════════════ */
 function startHint() {
   stopHint(); lastMove=Date.now();
-  hintInt=setInterval(()=>{
+  hintInt = setInterval(()=>{
     if (!gameOn||busy) return;
-    if (Date.now()-lastMove>=HINT_IDLE) showHint();
-  },1000);
+    if (Date.now()-lastMove >= HINT_IDLE) showHint();
+  }, 1000);
 }
-function stopHint() { clearInterval(hintInt); hintInt=null; clearHint(); hideHintBar(); }
+function stopHint()  { clearInterval(hintInt); hintInt=null; clearHint(); hideHintBar(); }
 function resetHint() { lastMove=Date.now(); clearHint(); hideHintBar(); }
 
 function showHint() {
   clearHint();
-  const move=findAnyMove(); if (!move) return;
-  hintCells=[move.from,move.to];
-  hintCells.forEach(({r,c})=>cells[r]?.[c]?.classList.add('hint'));
+  const move = findAnyMove();
+  if (!move) return;
+  hintCells = [move.from, move.to];
+  hintCells.forEach(({r,c}) => cells[r]?.[c]?.classList.add('hint'));
   showHintBar();
 }
 function clearHint() {
-  hintCells.forEach(({r,c})=>cells[r]?.[c]?.classList.remove('hint'));
-  hintCells=[];
+  hintCells.forEach(({r,c}) => cells[r]?.[c]?.classList.remove('hint'));
+  hintCells = [];
 }
 function showHintBar() {
   clearTimeout(hintTimer);
   document.getElementById('hint-bar').classList.add('on');
-  hintTimer=setTimeout(hideHintBar,3500);
+  hintTimer = setTimeout(hideHintBar, 3500);
 }
 function hideHintBar() { document.getElementById('hint-bar').classList.remove('on'); }
 
-// Scan board for any valid swap (returns {from,to} or null)
 function findAnyMove() {
   for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
-    if (c+1<COLS) { swap(r,c,r,c+1); const ok=findMatches().length>0; swap(r,c,r,c+1); if(ok)return{from:{r,c},to:{r,c:c+1}}; }
-    if (r+1<ROWS) { swap(r,c,r+1,c); const ok=findMatches().length>0; swap(r,c,r+1,c); if(ok)return{from:{r,c},to:{r:r+1,c}}; }
+    if (c+1<COLS) {
+      swap(r,c,r,c+1); const ok=findMatches().length>0; swap(r,c,r,c+1);
+      if (ok) return {from:{r,c},to:{r,c:c+1}};
+    }
+    if (r+1<ROWS) {
+      swap(r,c,r+1,c); const ok=findMatches().length>0; swap(r,c,r+1,c);
+      if (ok) return {from:{r,c},to:{r:r+1,c}};
+    }
   }
   return null;
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    TIMER
-══════════════════════════════════════════════════════ */
+══════════════════════════════════════════════ */
 function startTimer() {
   clearInterval(timerInt); renderTimer();
-  timerInt=setInterval(()=>{
-    timeLeft=Math.max(0,timeLeft-1); renderTimer();
-    if (timeLeft===30&&!tWarnPlayed){tWarnPlayed=true;sfx('twarn');}
-    if (timeLeft<=5&&timeLeft>0&&!t5Played){t5Played=true;sfx('five');}
-    if (timeLeft===0){clearInterval(timerInt);gameOn=false;stopHint();}
-  },1000);
+  timerInt = setInterval(()=>{
+    timeLeft = Math.max(0, timeLeft-1); renderTimer();
+    if (timeLeft===30 && !tWarnPlayed) { tWarnPlayed=true; sfx('twarn'); }
+    if (timeLeft<=5  && timeLeft>0 && !t5Played) { t5Played=true; sfx('five'); }
+    if (timeLeft===0) { clearInterval(timerInt); gameOn=false; stopHint(); }
+  }, 1000);
 }
 function renderTimer() {
-  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  const m=Math.floor(timeLeft/60), s=timeLeft%60;
   const el=document.getElementById('timer');
-  el.textContent=`${m}:${String(s).padStart(2,'0')}`;
-  el.classList.toggle('hot',timeLeft<=30);
+  el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('hot', timeLeft<=30);
 }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    RESULT
-══════════════════════════════════════════════════════ */
-function showResult(winner,myF,oppF,reason) {
+══════════════════════════════════════════════ */
+function showResult(winner, myF, oppF, reason) {
   clearInterval(timerInt); stopHint();
-  const win=String(winner)===String(myId);
-  const draw=winner===-1||winner==null;
-  sfx(win?'win':draw?'btn':'lose');
+  const win  = String(winner)===String(myId);
+  const draw = winner===-1 || winner==null;
+
+  sfx(win ? 'win' : draw ? 'btn' : 'lose');
 
   document.getElementById('r-ic').textContent = win?'🏆':draw?'🤝':'😢';
-  const t=document.getElementById('r-ti');
+  const t = document.getElementById('r-ti');
   t.textContent = win?'အနိုင်ရသည်! 🎉':draw?'သရေကျသည်':'ရှုံးသွားသည်';
-  t.className='r-ti '+(win?'win':draw?'draw':'lose');
+  t.className   = 'r-ti '+(win?'win':draw?'draw':'lose');
+
   document.getElementById('r-my-nm').textContent = myName;
   document.getElementById('r-op-nm').textContent = oppName;
   const mEl=document.getElementById('r-my-sc');
   const oEl=document.getElementById('r-op-sc');
-  mEl.textContent=myF; oEl.textContent=oppF;
-  mEl.className='rs-v'+(win?' hl':'');
-  oEl.className='rs-v'+(!win&&!draw?' hl':'');
-  const p=document.getElementById('r-prz');
-  if (win) p.textContent='🏆 +800 MMK ရွှေငွေ ရပြီ!';
-  else if (draw) p.textContent='🤝 250 MMK ပြန်ရမည်';
-  else if (reason==='disconnect') p.textContent='📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
-  else p.textContent='😢 နောက်တစ်ကြိမ် ကြိုးစားပါ!';
+  mEl.textContent = myF; oEl.textContent = oppF;
+  mEl.className   = 'rs-v'+(win?' hl':'');
+  oEl.className   = 'rs-v'+(!win&&!draw?' hl':'');
+
+  const p = document.getElementById('r-prz');
+  if (win)                  p.textContent = '🏆 +800 MMK ရွှေငွေ ရပြီ!';
+  else if (draw)            p.textContent = '🤝 250 MMK ပြန်ရမည်';
+  else if (reason==='disconnect') p.textContent = '📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
+  else                      p.textContent = '😢 နောက်တစ်ကြိမ် ကြိုးစားပါ!';
+
   show('s-result');
 }
 
-/* ══════════════════════════════════════════════════════
-   NAV
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════════════ */
 function show(id) {
-  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
   document.getElementById(id)?.classList.add('on');
 }
 function replayGame() {
-  myScore=0;oppScore=0;gameId=null;sel=null;busy=false;clearInterval(timerInt);stopHint();bgStop();doSearch();
+  myScore=0; oppScore=0; gameId=null; sel=null; busy=false;
+  clearInterval(timerInt); stopHint(); bgStop();
+  doSearch();
 }
-function goHome() { bgStop(); tg?tg.close():(location.href='/'); }
+function goHome() { bgStop(); tg ? tg.close() : (location.href='/'); }
 
-/* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════
    UTILS
-══════════════════════════════════════════════════════ */
-const ms=t=>new Promise(r=>setTimeout(r,t));
-function addTmp(el,cls,dur){el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),dur);}
-function popScore(pts){
-  const el=document.createElement('div');el.className='scpop';el.textContent=`+${pts}`;
-  el.style.left=(18+Math.random()*58)+'%';el.style.top=(22+Math.random()*38)+'%';
-  document.body.appendChild(el);setTimeout(()=>el.remove(),950);
+══════════════════════════════════════════════ */
+const ms = t => new Promise(r => setTimeout(r, t));
+
+function addTmp(el, cls, dur) {
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), dur);
+}
+function popScore(pts) {
+  const el=document.createElement('div');
+  el.className='scpop'; el.textContent=`+${pts}`;
+  el.style.left=(18+Math.random()*58)+'%';
+  el.style.top =(22+Math.random()*38)+'%';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 950);
 }
 let _tt=null;
-function toast(msg,err=0){
-  const el=document.getElementById('toast'),ti=document.getElementById('ti');
-  ti.textContent=(err?'⚠️ ':'✅ ')+msg;
-  ti.className='ti '+(err?'terr':'tok');
-  el.classList.add('on');clearTimeout(_tt);
-  _tt=setTimeout(()=>el.classList.remove('on'),2700);
+function toast(msg, err=0) {
+  const el=document.getElementById('toast'), ti=document.getElementById('ti');
+  ti.textContent = (err?'⚠️ ':'✅ ')+msg;
+  ti.className   = 'ti '+(err?'terr':'tok');
+  el.classList.add('on');
+  clearTimeout(_tt);
+  _tt = setTimeout(()=>el.classList.remove('on'), 2700);
 }
 </script>
 </body>
