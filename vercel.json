@@ -21,23 +21,32 @@
     {
       "source": "/audio/(.*)\\.mp3",
       "headers": [
-        { "key": "Content-Type",               "value": "audio/mpeg"  },
+        { "key": "Content-Type",               "value": "audio/mpeg" },
         { "key": "Cache-Control",              "value": "public, max-age=31536000, immutable" },
-        { "key": "Access-Control-Allow-Origin","value": "*"           }
+        { "key": "Access-Control-Allow-Origin","value": "*" }
       ]
     },
     {
       "source": "/audio/(.*)\\.wav",
       "headers": [
-        { "key": "Content-Type",               "value": "audio/wav"   },
+        { "key": "Content-Type",               "value": "audio/wav" },
         { "key": "Cache-Control",              "value": "public, max-age=31536000, immutable" },
-        { "key": "Access-Control-Allow-Origin","value": "*"           }
+        { "key": "Access-Control-Allow-Origin","value": "*" }
+      ]
+    },
+    {
+      "source": "/audio/(.*)\\.ogg",
+      "headers": [
+        { "key": "Content-Type",               "value": "audio/ogg" },
+        { "key": "Cache-Control",              "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin","value": "*" }
       ]
     },
     {
       "source": "/assets/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
+        { "key": "Access-Control-Allow-Origin","value": "*" }
       ]
     },
     {

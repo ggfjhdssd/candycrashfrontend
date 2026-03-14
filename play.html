@@ -10,44 +10,24 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation;}
-body{
-  font-family:'Nunito',sans-serif;
-  background:#18002a url('assets/background.jpg') center/cover no-repeat;
-  position:relative;user-select:none;
-}
-body::before{
-  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:linear-gradient(160deg,rgba(175,0,115,.52)0%,rgba(65,0,95,.62)55%,rgba(15,0,55,.72)100%);
-}
+body{font-family:'Nunito',sans-serif;background:#18002a url('assets/background.jpg') center/cover no-repeat;position:relative;user-select:none;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(160deg,rgba(175,0,115,.52)0%,rgba(65,0,95,.62)55%,rgba(15,0,55,.72)100%);}
+
 /* LOADER */
-#ldr{
-  position:fixed;inset:0;z-index:1000;
-  background:linear-gradient(135deg,#e91e8c,#7b1fa2);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-  transition:opacity .4s;
-}
+#ldr{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#e91e8c,#7b1fa2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .4s;}
 .ldr-ic{font-size:3.5rem;animation:bounce .85s ease-in-out infinite alternate;}
 @keyframes bounce{from{transform:scale(1)}to{transform:scale(1.18)}}
 .ldr-tx{font-size:1.75rem;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.35);}
 .ring{width:36px;height:36px;border:4px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
+
 /* SCREENS */
-.scr{
-  position:fixed;inset:0;z-index:1;
-  display:flex;flex-direction:column;align-items:center;
-  padding:10px 9px 6px;
-  visibility:hidden;opacity:0;pointer-events:none;
-  transition:opacity .28s ease,visibility .28s;
-}
+.scr{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;padding:10px 9px 6px;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .28s ease,visibility .28s;}
 .scr.on{visibility:visible;opacity:1;pointer-events:auto;}
+
 /* SEARCH */
 #s-search{justify-content:center;gap:16px;}
-.s-card{
-  background:rgba(255,255,255,.14);backdrop-filter:blur(22px);
-  border:2px solid rgba(255,255,255,.28);border-radius:24px;
-  padding:28px 22px;text-align:center;width:100%;max-width:320px;
-  box-shadow:0 12px 40px rgba(0,0,0,.35);
-}
+.s-card{background:rgba(255,255,255,.14);backdrop-filter:blur(22px);border:2px solid rgba(255,255,255,.28);border-radius:24px;padding:28px 22px;text-align:center;width:100%;max-width:320px;box-shadow:0 12px 40px rgba(0,0,0,.35);}
 .sc-ic{font-size:3rem;animation:bounce 1s ease-in-out infinite alternate;}
 .sc-ti{font-size:1.3rem;font-weight:900;color:#fff;margin:10px 0 5px;}
 .sc-su{font-size:.83rem;color:rgba(255,255,255,.75);}
@@ -56,24 +36,13 @@ body::before{
 .dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
 @keyframes dp{0%,100%{transform:scale(.6);opacity:.3}50%{transform:scale(1.15);opacity:1}}
 .sc-inf{background:rgba(255,255,255,.1);border-radius:12px;padding:11px;font-size:.82rem;color:rgba(255,255,255,.88);line-height:1.95;}
-.btn-cx{
-  width:100%;max-width:320px;padding:13px;
-  background:rgba(255,255,255,.17);border:2px solid rgba(255,255,255,.35);
-  border-radius:14px;color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .18s;
-}
+.btn-cx{width:100%;max-width:320px;padding:13px;background:rgba(255,255,255,.17);border:2px solid rgba(255,255,255,.35);border-radius:14px;color:#fff;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;cursor:pointer;transition:all .18s;}
 .btn-cx:active{transform:scale(.96);}
+
 /* GAME SCREEN */
 #s-game{justify-content:flex-start;gap:0;}
-.topbar{
-  display:grid;grid-template-columns:1fr 72px 1fr;
-  align-items:center;gap:5px;width:100%;max-width:420px;
-  margin-bottom:5px;flex-shrink:0;
-}
-.sbox{
-  background:rgba(255,255,255,.15);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.28);border-radius:14px;
-  padding:7px 8px;text-align:center;overflow:hidden;
-}
+.topbar{display:grid;grid-template-columns:1fr 72px 1fr;align-items:center;gap:5px;width:100%;max-width:420px;margin-bottom:5px;flex-shrink:0;}
+.sbox{background:rgba(255,255,255,.15);backdrop-filter:blur(16px);border:2px solid rgba(255,255,255,.28);border-radius:14px;padding:7px 8px;text-align:center;overflow:hidden;}
 .sbox.me{border-color:rgba(255,215,0,.65);background:rgba(255,215,0,.18);}
 .sbox.opp{border-color:rgba(255,105,180,.65);background:rgba(255,105,180,.16);}
 .sb-nm{font-size:9px;font-weight:700;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.05em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
@@ -81,101 +50,86 @@ body::before{
 .sbox.opp .sb-sc{color:#ff9de2;}
 .sb-lb{font-size:7px;color:rgba(255,255,255,.45);margin-top:1px;}
 .tcol{display:flex;flex-direction:column;align-items:center;gap:3px;}
-.tbox{
-  display:flex;flex-direction:column;align-items:center;
-  background:rgba(255,255,255,.14);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.26);border-radius:13px;padding:5px 8px;
-}
+.tbox{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.14);backdrop-filter:blur(16px);border:2px solid rgba(255,255,255,.26);border-radius:13px;padding:5px 8px;}
 .t-num{font-size:1.22rem;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:.02em;}
 .t-num.hot{color:#ff6b6b;animation:hotpop .5s ease-in-out infinite alternate;}
 @keyframes hotpop{from{transform:scale(1)}to{transform:scale(1.14)}}
 .t-ic{font-size:8px;color:rgba(255,255,255,.5);}
-#mute-btn{
-  background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.3);
-  border-radius:18px;padding:3px 8px;cursor:pointer;font-size:13px;
-  color:#fff;font-family:'Nunito',sans-serif;font-weight:700;
-  transition:all .15s;user-select:none;
-}
+#mute-btn{background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.3);border-radius:18px;padding:3px 8px;cursor:pointer;font-size:13px;color:#fff;font-family:'Nunito',sans-serif;font-weight:700;transition:all .15s;user-select:none;}
 #mute-btn:active{transform:scale(.9);}
 #mute-btn.muted{background:rgba(239,68,68,.25);border-color:rgba(239,68,68,.5);}
-/* Board */
-.bwrap{
-  position:relative;width:100%;max-width:420px;
-  flex:1;min-height:0;display:flex;align-items:center;justify-content:center;
-}
-.bframe{
-  position:absolute;inset:-5px;pointer-events:none;z-index:2;
-  background:url('assets/bg1.png') center/100% 100% no-repeat;opacity:.5;
-}
-#grid{
-  display:grid;grid-template-columns:repeat(8,1fr);gap:2px;
-  width:100%;aspect-ratio:1;max-height:calc(100vh - 158px);
-  position:relative;z-index:3;will-change:transform;
-}
-.cell{
-  aspect-ratio:1;position:relative;border-radius:7px;
-  background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);
-  overflow:hidden;cursor:pointer;
-  will-change:transform,opacity;
-  transition:transform .1s ease,box-shadow .1s ease;
-}
-.cell.sel{
-  background:rgba(255,215,0,.28);border-color:#ffd700;
-  box-shadow:0 0 14px rgba(255,215,0,.7),inset 0 0 7px rgba(255,215,0,.25);
-  transform:scale(1.07);z-index:5;
-}
-.cell.hint{
-  animation:hintGlow .55s ease-in-out infinite alternate;
-  border-color:rgba(255,255,255,.9)!important;z-index:6;
-}
-@keyframes hintGlow{
-  from{box-shadow:0 0 6px rgba(255,255,255,.4);transform:scale(1);}
-  to{box-shadow:0 0 18px rgba(255,255,255,.95),0 0 8px rgba(255,215,0,.8);transform:scale(1.1);}
-}
-.cell img{
-  position:absolute;inset:4%;width:92%;height:92%;
-  object-fit:contain;display:block;pointer-events:none;
-  will-change:transform,opacity;
-  filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));
-}
-@keyframes kExplode{
-  0%{transform:scale(1);opacity:1;}
-  40%{transform:scale(1.5);opacity:.7;filter:brightness(2.2) drop-shadow(0 0 10px #fff);}
-  100%{transform:scale(0);opacity:0;}
-}
+
+/* BOARD */
+.bwrap{position:relative;width:100%;max-width:420px;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;}
+.bframe{position:absolute;inset:-5px;pointer-events:none;z-index:2;background:url('assets/bg1.png') center/100% 100% no-repeat;opacity:.5;}
+#grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;width:100%;aspect-ratio:1;max-height:calc(100vh - 158px);position:relative;z-index:3;will-change:transform;}
+
+/* CELLS */
+.cell{aspect-ratio:1;position:relative;border-radius:7px;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.12);overflow:hidden;cursor:pointer;will-change:transform,opacity;transition:transform .1s ease,box-shadow .1s ease;}
+.cell.sel{background:rgba(255,215,0,.28);border-color:#ffd700;box-shadow:0 0 14px rgba(255,215,0,.7),inset 0 0 7px rgba(255,215,0,.25);transform:scale(1.07);z-index:5;}
+.cell.hint{animation:hintGlow .55s ease-in-out infinite alternate;border-color:rgba(255,255,255,.9)!important;z-index:6;}
+@keyframes hintGlow{from{box-shadow:0 0 6px rgba(255,255,255,.4);transform:scale(1);}to{box-shadow:0 0 18px rgba(255,255,255,.95),0 0 8px rgba(255,215,0,.8);transform:scale(1.1);}}
+.cell img{position:absolute;inset:4%;width:92%;height:92%;object-fit:contain;display:block;pointer-events:none;will-change:transform,opacity;filter:drop-shadow(0 2px 4px rgba(0,0,0,.28));}
+
+/* Special candy overlays */
+.cell.is-striped-h img{filter:drop-shadow(0 0 6px #00bfff) drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+.cell.is-striped-v img{filter:drop-shadow(0 0 6px #ff69b4) drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+.cell.is-bomb img{filter:drop-shadow(0 0 8px #ff8c00) drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+.cell.is-colorbomb img{filter:drop-shadow(0 0 10px #fff) drop-shadow(0 2px 4px rgba(0,0,0,.3));animation:cbSpin 2s linear infinite;}
+@keyframes cbSpin{from{filter:drop-shadow(0 0 10px #f00) drop-shadow(0 2px 4px rgba(0,0,0,.3));}25%{filter:drop-shadow(0 0 10px #ff0) drop-shadow(0 2px 4px rgba(0,0,0,.3));}50%{filter:drop-shadow(0 0 10px #0f0) drop-shadow(0 2px 4px rgba(0,0,0,.3));}75%{filter:drop-shadow(0 0 10px #0ff) drop-shadow(0 2px 4px rgba(0,0,0,.3));}to{filter:drop-shadow(0 0 10px #f0f) drop-shadow(0 2px 4px rgba(0,0,0,.3));}}
+
+/* Direction indicators on striped candy */
+.cell.is-striped-h::after,.cell.is-striped-v::after{content:'';position:absolute;inset:0;border-radius:6px;pointer-events:none;opacity:.4;}
+.cell.is-striped-h::after{background:repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(0,191,255,.5) 4px,rgba(0,191,255,.5) 6px);}
+.cell.is-striped-v::after{background:repeating-linear-gradient(90deg,transparent,transparent 4px,rgba(255,105,180,.5) 4px,rgba(255,105,180,.5) 6px);}
+
+/* ANIMATIONS */
+@keyframes kExplode{0%{transform:scale(1);opacity:1;}40%{transform:scale(1.5);opacity:.7;filter:brightness(2.5) drop-shadow(0 0 12px #fff);}100%{transform:scale(0);opacity:0;}}
 .cell.exploding img{animation:kExplode .32s ease-out forwards;}
+@keyframes kExplodeBig{0%{transform:scale(1);opacity:1;}30%{transform:scale(2);opacity:.8;filter:brightness(3) drop-shadow(0 0 20px #ff8c00);}100%{transform:scale(0);opacity:0;}}
+.cell.exploding-big img{animation:kExplodeBig .45s ease-out forwards;}
 @keyframes kFall{from{transform:translateY(-115%) scale(.8);opacity:0;}to{transform:translateY(0) scale(1);opacity:1;}}
 .cell.fallin img{animation:kFall .34s cubic-bezier(.22,1.2,.36,1) both;}
 @keyframes kSwap{0%{transform:scale(1)}45%{transform:scale(1.18)}100%{transform:scale(1)}}
 .cell.swpd img{animation:kSwap .22s ease-out;}
 @keyframes kShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .cell.shake{animation:kShake .24s ease-in-out;}
-/* Opponent bar */
-.oppbar{
-  display:flex;align-items:center;gap:8px;width:100%;max-width:420px;
-  flex-shrink:0;margin-top:4px;
-  background:rgba(255,255,255,.11);backdrop-filter:blur(14px);
-  border:1.5px solid rgba(255,105,180,.3);border-radius:13px;padding:7px 12px;
-}
+
+/* Striped laser beam animation */
+.laser-h,.laser-v{position:fixed;z-index:600;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.9),transparent);border-radius:4px;animation:laserAnim .35s ease-out forwards;}
+.laser-h{height:6px;}
+.laser-v{width:6px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.9),transparent);}
+@keyframes laserAnim{0%{opacity:1;transform:scaleX(1);}100%{opacity:0;transform:scaleX(1.1);}}
+
+/* Explosion effect overlay */
+.boom{position:fixed;z-index:601;pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(255,140,0,.9),rgba(255,60,0,.6),transparent);animation:boomAnim .45s ease-out forwards;}
+@keyframes boomAnim{0%{transform:scale(0);opacity:1;}60%{transform:scale(1.2);opacity:.7;}100%{transform:scale(1.8);opacity:0;}}
+
+/* Colorbomb sweep */
+.cbsweep{position:fixed;z-index:602;pointer-events:none;border-radius:50%;border:4px solid rgba(255,255,255,.8);animation:cbSweepAnim .5s ease-out forwards;}
+@keyframes cbSweepAnim{0%{transform:scale(0);opacity:1;}100%{transform:scale(3);opacity:0;}}
+
+/* SCORE LABEL */
+.score-label{position:fixed;z-index:500;font-size:1.4rem;font-weight:900;color:#ffd700;text-shadow:0 2px 8px rgba(0,0,0,.7);pointer-events:none;animation:scoreUp 1s ease-out forwards;}
+@keyframes scoreUp{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-70px) scale(1.5);}}
+
+/* COMBO LABEL */
+.combo-label{position:fixed;z-index:503;font-size:1.1rem;font-weight:900;pointer-events:none;animation:comboAnim 1.2s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.6);padding:4px 14px;border-radius:20px;backdrop-filter:blur(8px);}
+@keyframes comboAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(.5);}25%{opacity:1;transform:translate(-50%,-50%) scale(1.2);}75%{opacity:1;transform:translate(-50%,-80%) scale(1);}100%{opacity:0;transform:translate(-50%,-120%) scale(.8);}}
+
+/* OPPONENT BAR */
+.oppbar{display:flex;align-items:center;gap:8px;width:100%;max-width:420px;flex-shrink:0;margin-top:4px;background:rgba(255,255,255,.11);backdrop-filter:blur(14px);border:1.5px solid rgba(255,105,180,.3);border-radius:13px;padding:7px 12px;}
 .ob-lb{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);}
 .ob-nm{font-size:12px;font-weight:800;color:#ff9de2;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .ob-sc{font-size:1.1rem;font-weight:900;color:#ff9de2;}
 .ob-dot{width:7px;height:7px;border-radius:50%;background:#555;flex-shrink:0;transition:background .4s;}
 .ob-dot.live{background:#00e676;}
-/* Countdown */
-#cd-ov{
-  position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,.82);backdrop-filter:blur(10px);
-  display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-}
+
+/* COUNTDOWN */
+#cd-ov{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.82);backdrop-filter:blur(10px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
 #cd-ov.on{display:flex;}
-.cd-vs{
-  display:flex;align-items:center;gap:18px;
-  background:rgba(255,255,255,.1);backdrop-filter:blur(16px);
-  border:2px solid rgba(255,255,255,.2);border-radius:20px;padding:14px 22px;margin-bottom:8px;
-}
-.cd-pl{text-align:center;}
-.cd-av{font-size:2rem;margin-bottom:3px;}
+.cd-vs{display:flex;align-items:center;gap:18px;background:rgba(255,255,255,.1);backdrop-filter:blur(16px);border:2px solid rgba(255,255,255,.2);border-radius:20px;padding:14px 22px;margin-bottom:8px;}
+.cd-pl{text-align:center;}.cd-av{font-size:2rem;margin-bottom:3px;}
 .cd-pn{font-size:.75rem;font-weight:700;color:rgba(255,255,255,.7);max-width:100px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .cd-vt{font-size:1.5rem;font-weight:900;color:rgba(255,255,255,.45);}
 #cd-num{font-size:7rem;font-weight:900;line-height:1;text-shadow:0 6px 30px rgba(0,0,0,.5);transition:none;}
@@ -184,29 +138,15 @@ body::before{
 @keyframes cdPop{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}
 .cd-pop{animation:cdPop .35s cubic-bezier(.16,1,.3,1);}
 .cd-sub{font-size:.9rem;font-weight:700;color:rgba(255,255,255,.6);}
-/* Hint bar */
-#hint-bar{
-  position:fixed;bottom:72px;left:50%;
-  transform:translateX(-50%) translateY(50px);
-  z-index:400;opacity:0;pointer-events:none;
-  transition:all .35s cubic-bezier(.68,-.55,.265,1.55);
-}
+
+/* HINT */
+#hint-bar{position:fixed;bottom:72px;left:50%;transform:translateX(-50%) translateY(50px);z-index:400;opacity:0;pointer-events:none;transition:all .35s cubic-bezier(.68,-.55,.265,1.55);}
 #hint-bar.on{transform:translateX(-50%) translateY(0);opacity:1;}
-.hb-inner{
-  background:rgba(255,215,0,.2);border:1.5px solid rgba(255,215,0,.55);
-  backdrop-filter:blur(16px);border-radius:24px;
-  padding:8px 18px;font-size:12px;font-weight:700;color:#ffd700;
-  white-space:nowrap;display:flex;align-items:center;gap:6px;
-}
-/* Result */
+.hb-inner{background:rgba(255,215,0,.2);border:1.5px solid rgba(255,215,0,.55);backdrop-filter:blur(16px);border-radius:24px;padding:8px 18px;font-size:12px;font-weight:700;color:#ffd700;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+
+/* RESULT */
 #s-result{justify-content:center;}
-.rc{
-  background:linear-gradient(135deg,rgba(28,0,52,.97),rgba(68,0,78,.97));
-  border:2px solid rgba(255,255,255,.18);border-radius:26px;
-  padding:30px 22px;text-align:center;width:100%;max-width:310px;
-  box-shadow:0 24px 60px rgba(0,0,0,.55);
-  animation:rIn .4s cubic-bezier(.16,1,.3,1);
-}
+.rc{background:linear-gradient(135deg,rgba(28,0,52,.97),rgba(68,0,78,.97));border:2px solid rgba(255,255,255,.18);border-radius:26px;padding:30px 22px;text-align:center;width:100%;max-width:310px;box-shadow:0 24px 60px rgba(0,0,0,.55);animation:rIn .4s cubic-bezier(.16,1,.3,1);}
 @keyframes rIn{from{opacity:0;transform:scale(.85) translateY(25px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .r-ic{font-size:3.8rem;display:block;margin-bottom:8px;}
 .r-ti{font-size:1.75rem;font-weight:900;color:#fff;margin-bottom:5px;}
@@ -223,20 +163,20 @@ body::before{
 .r-btn:active{transform:scale(.95);}
 .rb-play{background:linear-gradient(135deg,#e91e8c,#7b1fa2);box-shadow:0 4px 16px rgba(233,30,140,.4);}
 .rb-home{background:rgba(255,255,255,.14);border:1.5px solid rgba(255,255,255,.3);}
-/* Fake DC */
+
+/* FAKE DC */
 #fkdc{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;}
 #fkdc.on{display:flex;}
 .fkdc-c{background:rgba(18,0,38,.97);border:2px solid rgba(233,30,140,.35);border-radius:20px;padding:28px 22px;text-align:center;max-width:268px;}
 .fkdc-ic{font-size:2.5rem;margin-bottom:10px;}
 .fkdc-tx{color:#fff;font-size:.95rem;font-weight:700;line-height:1.55;}
-/* Score pop */
-.scpop{position:fixed;pointer-events:none;z-index:600;font-size:1.1rem;font-weight:900;color:#ffd700;text-shadow:0 2px 8px rgba(0,0,0,.6);animation:scpopanim .9s ease-out forwards;}
-@keyframes scpopanim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-55px) scale(1.5)}}
-/* Toast */
+
+/* TOAST */
 #toast{position:fixed;top:10px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:900;opacity:0;pointer-events:none;transition:all .34s cubic-bezier(.68,-.55,.265,1.55);}
 #toast.on{transform:translateX(-50%) translateY(0);opacity:1;}
 .ti{padding:9px 18px;border-radius:100px;font-size:12px;font-weight:700;backdrop-filter:blur(20px);white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4);display:flex;align-items:center;gap:6px;}
 .tok{background:rgba(0,200,83,.9);color:#fff;}.terr{background:rgba(239,68,68,.9);color:#fff;}
+
 #jerry{position:fixed;right:5px;bottom:52px;width:46px;z-index:4;pointer-events:none;filter:drop-shadow(0 3px 7px rgba(0,0,0,.45));animation:jw 2.5s ease-in-out infinite;}
 @keyframes jw{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg) scale(1.07)}}
 </style>
@@ -248,6 +188,7 @@ body::before{
 <div id="hint-bar"><div class="hb-inner">💡 တောက်ပနေသောသကြားလုံး ၂ ခုကို ရွှေ့ပါ!</div></div>
 <div id="fkdc"><div class="fkdc-c"><div class="fkdc-ic">📡</div><div class="fkdc-tx" id="fkdc-msg">ချိတ်ဆက်မှု ပြဿနာ...</div><div class="ring" style="margin:12px auto 0;"></div></div></div>
 
+<!-- COUNTDOWN -->
 <div id="cd-ov">
   <div class="cd-vs">
     <div class="cd-pl"><div class="cd-av">🙋</div><div class="cd-pn" id="cd-me">ကိုယ်</div></div>
@@ -260,6 +201,7 @@ body::before{
 
 <img id="jerry" src="assets/jerry.png" alt="" onerror="this.remove()">
 
+<!-- SEARCH -->
 <div class="scr" id="s-search">
   <div class="s-card">
     <div class="sc-ic">🍭</div>
@@ -271,6 +213,7 @@ body::before{
   <button class="btn-cx" onclick="cancelSearch()">❌ ဖျက်သိမ်းမည်</button>
 </div>
 
+<!-- GAME -->
 <div class="scr" id="s-game">
   <div class="topbar">
     <div class="sbox me"><div class="sb-nm" id="my-nm">ကိုယ်</div><div class="sb-sc" id="my-sc">0</div><div class="sb-lb">မှတ်</div></div>
@@ -292,6 +235,7 @@ body::before{
   </div>
 </div>
 
+<!-- RESULT -->
 <div class="scr" id="s-result">
   <div class="rc">
     <span class="r-ic" id="r-ic">🏆</span>
@@ -302,644 +246,741 @@ body::before{
     </div>
     <div class="r-prz" id="r-prz">—</div>
     <div class="r-btns">
-      <button class="r-btn rb-play" onclick="sfx('btn');replayGame()">🍭 ထပ်ကစား</button>
-      <button class="r-btn rb-home" onclick="sfx('btn');goHome()">🏠 ပင်မ</button>
+      <button class="r-btn rb-play" onclick="sfx('btn_r');replayGame()">🍭 ထပ်ကစား</button>
+      <button class="r-btn rb-home" onclick="sfx('btn_r');goHome()">🏠 ပင်မ</button>
     </div>
   </div>
 </div>
 
 <script>
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    CONFIG
-══════════════════════════════════════════════ */
-const BACKEND   = 'https://candycrashbackend.onrender.com';
-const ROWS      = 8;
-const COLS      = 8;
-const N_CANDY   = 9;
-const GAME_SEC  = 180;
-const HINT_IDLE = 10000;
-const PTS_CANDY = 10;
+═══════════════════════════════════════════════════ */
+const BACKEND    = 'https://candycrashbackend.onrender.com';
+const ROWS       = 8;
+const COLS       = 8;
+const N_CANDY    = 9;      // normal candy types p1..p9
+const GAME_SEC   = 180;
+const HINT_IDLE  = 10000;
 
-/* ══════════════════════════════════════════════
-   ██ AUDIO ENGINE ██
+// ── Cell types ──
+// 0  = empty
+// 1-9 = normal candy color
+// type encodes: color (1-9), special (0=normal,1=striped-H,2=striped-V,3=bomb,4=colorbomb)
+// We store as: { color:1-9, special:0-4 }
+// Board array stores objects.
 
-   Root-cause of "မကြားရ" bug:
-   ─ File extension မှားနေတာ (.ogg.ogx) → fixed → .mp3
-   ─ AudioContext autoplay block on mobile → fixed below
-   ─ Async init race: _bgEl null when bgPlay() called → fixed
+const SP_NONE       = 0;
+const SP_STRIPED_H  = 1;  // 4-in-a-row horizontal
+const SP_STRIPED_V  = 2;  // 4-in-a-row vertical
+const SP_BOMB       = 3;  // L/T shape or 2×2+
+const SP_COLORBOMB  = 4;  // 5-in-a-row
 
-   Strategy (simplest & most reliable for mobile):
-   ─ HTMLAudioElement for EVERYTHING (bg + all SFX)
-   ─ All Audio objects created at page-load (no async needed)
-   ─ audioUnlock() called explicitly on "Find Game" gesture
-     → plays a 0-volume dummy sound to unlock the audio stack
-     → after that, all .play() calls work immediately
-══════════════════════════════════════════════ */
-
-// ── Audio file map (all .mp3 now) ──
+/* ═══════════════════════════════════════════════════
+   AUDIO ENGINE
+   All files are .mp3 (reliable on all mobile browsers)
+   audioUnlock() called explicitly inside doSearch() gesture
+═══════════════════════════════════════════════════ */
 const SND = {
-  bg:      new Audio('audio/bgmusic.mp3'),
-  swap:    new Audio('audio/Switch_sound1.mp3'),
-  invalid: new Audio('audio/Negative_switch_sound1.mp3'),
-  match:   new Audio('audio/Candy_land4.mp3'),
-  combo:   new Audio('audio/Combo_sound3.mp3'),
-  btn:     new Audio('audio/Button_press.mp3'),
-  win:     new Audio('audio/Win.mp3'),
-  lose:    new Audio('audio/Lose.mp3'),
-  twarn:   new Audio('audio/Time_warning.mp3'),
-  five:    new Audio('audio/5_seconds_left_flash_version.wav'),
-  strip:   new Audio('audio/Striped_candy_created1.mp3'),
+  bg:        new Audio('audio/bgmusic.mp3'),
+  swap:      new Audio('audio/Switch_sound1.mp3'),
+  invalid:   new Audio('audio/Negative_switch_sound1.mp3'),
+  match:     new Audio('audio/Candy_land4.mp3'),
+  combo2:    new Audio('audio/Combo_sound3.mp3'),
+  tasty:     new Audio('audio/Tasty!.ogg.mp3'),
+  delicious: new Audio('audio/Delicious_.ogg.mp3'),
+  divine:    new Audio('audio/Divine_.ogg.mp3'),
+  striped_c: new Audio('audio/Striped_candy_created1.mp3'),
+  cbomb_c:   new Audio('audio/Colour_bomb_created.ogg.mp3'),
+  cbomb_x:   new Audio('audio/Colour_bomb1.ogg (2).mp3'),
+  win:       new Audio('audio/Win.mp3'),
+  sugar:     new Audio('audio/Sugar_crush.ogg.mp3'),
+  lose:      new Audio('audio/Lose.mp3'),
+  twarn:     new Audio('audio/Time_warning.mp3'),
+  five:      new Audio('audio/5_seconds_left_flash_version.wav'),
+  btn:       new Audio('audio/Button_press.mp3'),
+  btn_r:     new Audio('audio/Button_release.mp3'),
+  swoosh:    new Audio('audio/Swoosh_ut.ogg.mp3'),
 };
-
-// Volume settings
 const VOL = {
-  bg:.32, swap:.75, invalid:.65, match:.75,
-  combo:.82, btn:.5, win:.88, lose:.78,
-  twarn:.72, five:.82, strip:.72,
+  bg:.30, swap:.75, invalid:.65, match:.72, combo2:.80,
+  tasty:.85, delicious:.85, divine:.85,
+  striped_c:.80, cbomb_c:.80, cbomb_x:.85,
+  win:.88, sugar:.80, lose:.78, twarn:.72, five:.82,
+  btn:.5, btn_r:.5, swoosh:.65,
 };
+Object.entries(SND).forEach(([id,el])=>{el.volume=VOL[id]??0.75;el.preload='auto';});
+SND.bg.loop=true;
 
-// Apply volumes & configure bg loop
-Object.entries(SND).forEach(([id, el]) => {
-  el.volume  = VOL[id] ?? 0.75;
-  el.preload = 'auto';
-});
-SND.bg.loop = true;
+let _muted=false, _unlocked=false;
 
-let _muted    = false;
-let _unlocked = false;  // has user gesture unlocked audio?
-
-// ── audioUnlock: call this INSIDE a user-gesture handler ──
-// Plays and immediately pauses every sound at volume=0
-// This "primes" the browser's audio stack so future .play() calls work
-function audioUnlock() {
-  if (_unlocked) return;
-  _unlocked = true;
-  Object.values(SND).forEach(el => {
-    const v = el.volume;
-    el.volume = 0;
-    const p = el.play();
-    if (p) p.then(() => { el.pause(); el.currentTime = 0; el.volume = v; }).catch(() => { el.volume = v; });
+function audioUnlock(){
+  if(_unlocked)return; _unlocked=true;
+  Object.values(SND).forEach(el=>{
+    const v=el.volume; el.volume=0;
+    const p=el.play(); if(p) p.then(()=>{el.pause();el.currentTime=0;el.volume=v;}).catch(()=>{el.volume=v;});
   });
-  console.log('[Audio] unlocked');
+}
+function sfx(id){
+  if(_muted||!SND[id])return;
+  try{SND[id].currentTime=0;SND[id].play().catch(()=>{});}catch(e){}
+}
+function bgPlay(){if(_muted)return;SND.bg.currentTime=0;SND.bg.play().catch(()=>{});}
+function bgStop(){try{SND.bg.pause();SND.bg.currentTime=0;}catch(e){}}
+function toggleMute(){
+  _muted=!_muted;
+  const btn=document.getElementById('mute-btn');
+  if(_muted){bgStop();Object.values(SND).forEach(el=>el.volume=0);btn.textContent='🔇';btn.classList.add('muted');}
+  else{Object.entries(SND).forEach(([id,el])=>el.volume=VOL[id]??0.75);bgPlay();btn.textContent='🔊';btn.classList.remove('muted');}
 }
 
-// ── sfx: play a one-shot sound effect ──
-function sfx(id) {
-  if (_muted || !SND[id]) return;
-  try {
-    SND[id].currentTime = 0;
-    SND[id].play().catch(() => {});
-  } catch(e) {}
-}
-
-// ── bgPlay / bgStop ──
-function bgPlay() {
-  if (_muted) return;
-  SND.bg.currentTime = 0;
-  SND.bg.play().catch(() => {});
-}
-function bgStop() {
-  try { SND.bg.pause(); SND.bg.currentTime = 0; } catch(e) {}
-}
-
-// ── Mute toggle ──
-function toggleMute() {
-  _muted = !_muted;
-  const btn = document.getElementById('mute-btn');
-  if (_muted) {
-    bgStop();
-    // Mute all SFX elements too
-    Object.values(SND).forEach(el => el.volume = 0);
-    btn.textContent = '🔇';
-    btn.classList.add('muted');
-  } else {
-    // Restore volumes
-    Object.entries(SND).forEach(([id, el]) => el.volume = VOL[id] ?? 0.75);
-    bgPlay();
-    btn.textContent = '🔊';
-    btn.classList.remove('muted');
-  }
-}
-
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    GAME STATE
-══════════════════════════════════════════════ */
-let socket, myId, myName='', gameId, oppId, oppName='';
-let myScore=0, oppScore=0, timeLeft=GAME_SEC;
-let timerInt=null, gameOn=false;
+═══════════════════════════════════════════════════ */
+let socket,myId,myName='',gameId,oppId,oppName='';
+let myScore=0,oppScore=0,timeLeft=GAME_SEC;
+let timerInt=null,gameOn=false;
+
+// board[r][c] = {color:1-9, special:0-4} | null (empty=null)
 let board=[], cells=[];
 let busy=false, sel=null;
+let lastMove=0,hintInt=null,hintCells=[],hintTimer=null;
+let tWarnPlayed=false,t5Played=false;
+const tg=window.Telegram?.WebApp;
 
-// Hint
-let lastMove=0, hintInt=null, hintCells=[], hintTimer=null;
-// Timer flags
-let tWarnPlayed=false, t5Played=false;
-
-const tg = window.Telegram?.WebApp;
-
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    BOOT
-══════════════════════════════════════════════ */
-addEventListener('DOMContentLoaded', async () => {
+═══════════════════════════════════════════════════ */
+addEventListener('DOMContentLoaded',async()=>{
   tg?.expand();
-  try {
-    const r = await fetch(`${BACKEND}/api/auth`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({initData:tg?.initData||'', telegramId:tg?.initDataUnsafe?.user?.id})
-    });
-    const d = await r.json();
-    if (d.error) { toast(d.error,1); return; }
-    myId   = d.telegramId;
-    myName = d.firstName || d.username || `User${myId}`;
-  } catch { toast('Server ချိတ်ဆက်မရပါ',1); return; }
-
-  hideLdr();
-  connectSocket();
-  doSearch();
+  try{
+    const r=await fetch(`${BACKEND}/api/auth`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?.initData||'',telegramId:tg?.initDataUnsafe?.user?.id})});
+    const d=await r.json();
+    if(d.error){toast(d.error,1);return;}
+    myId=d.telegramId; myName=d.firstName||d.username||`User${myId}`;
+  }catch{toast('Server ချိတ်ဆက်မရပါ',1);return;}
+  hideLdr(); connectSocket(); doSearch();
 });
+function hideLdr(){const l=document.getElementById('ldr');l.style.opacity='0';setTimeout(()=>l.remove(),420);}
 
-function hideLdr() {
-  const l = document.getElementById('ldr');
-  l.style.opacity = '0';
-  setTimeout(() => l.remove(), 420);
-}
-
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    SOCKET
-══════════════════════════════════════════════ */
-function connectSocket() {
-  const jp = new URLSearchParams(location.search).get('join') || '';
-  socket = io(BACKEND, {transports:['websocket','polling'], query:{join:jp}});
-
-  socket.on('waitingForPlayer', ({gameId:gid}) => { gameId=gid; show('s-search'); });
-
-  socket.on('gameStarted', d => {
-    gameId   = d.gameId;
-    oppId    = d.opponentId;
-    oppName  = d.players?.[d.opponentId] || d.opponentName || 'ဆော့ဖော်';
-    myName   = d.players?.[d.myId] || myName;
-    timeLeft = d.duration || GAME_SEC;
-    prepareGame();
+═══════════════════════════════════════════════════ */
+function connectSocket(){
+  const jp=new URLSearchParams(location.search).get('join')||'';
+  socket=io(BACKEND,{transports:['websocket','polling'],query:{join:jp}});
+  socket.on('waitingForPlayer',({gameId:gid})=>{gameId=gid;show('s-search');});
+  socket.on('gameStarted',d=>{
+    gameId=d.gameId;oppId=d.opponentId;
+    oppName=d.players?.[d.opponentId]||d.opponentName||'ဆော့ဖော်';
+    myName=d.players?.[d.myId]||myName;
+    timeLeft=d.duration||GAME_SEC; prepareGame();
   });
-
-  socket.on('gameResumed', d => {
-    gameId   = d.gameId;
-    oppId    = d.opponentId;
-    oppName  = d.players?.[d.opponentId] || 'ဆော့ဖော်';
-    timeLeft = Math.max(0, Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
-    myScore  = d.myScore||0;
-    oppScore = d.opponentScore||0;
-    startGame();
+  socket.on('gameResumed',d=>{
+    gameId=d.gameId;oppId=d.opponentId;
+    oppName=d.players?.[d.opponentId]||'ဆော့ဖော်';
+    timeLeft=Math.max(0,Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
+    myScore=d.myScore||0;oppScore=d.opponentScore||0;startGame();
   });
-
-  socket.on('opponentScore', ({score}) => {
-    oppScore = score;
-    document.getElementById('opp-sc').textContent    = oppScore;
-    document.getElementById('opp-bar-sc').textContent = oppScore;
+  socket.on('opponentScore',({score})=>{
+    oppScore=score;
+    document.getElementById('opp-sc').textContent=oppScore;
+    document.getElementById('opp-bar-sc').textContent=oppScore;
     document.getElementById('opp-dot').classList.add('live');
   });
-
-  socket.on('gameOver', d => {
-    gameOn=false; busy=false; clearInterval(timerInt); stopHint(); bgStop();
-    showResult(d.winner, myScore, d.scores?.[oppId]??oppScore, d.reason);
+  socket.on('gameOver',d=>{
+    gameOn=false;busy=false;clearInterval(timerInt);stopHint();bgStop();
+    showResult(d.winner,myScore,d.scores?.[oppId]??oppScore,d.reason);
   });
-
-  socket.on('fakeDisconnect', ({message}) => {
-    busy=true; gameOn=false; clearInterval(timerInt); stopHint(); bgStop();
-    document.getElementById('fkdc-msg').textContent = message;
+  socket.on('fakeDisconnect',({message})=>{
+    busy=true;gameOn=false;clearInterval(timerInt);stopHint();bgStop();
+    document.getElementById('fkdc-msg').textContent=message;
     document.getElementById('fkdc').classList.add('on');
   });
-
-  socket.on('insufficientBalance', ({balance,required}) => {
-    toast(`ငွေမလုံပါ (${balance}/${required} MMK)`, 1);
-    setTimeout(goHome, 1800);
-  });
-
-  socket.on('searchCancelled', goHome);
-  socket.on('error', ({msg}) => toast(msg, 1));
+  socket.on('insufficientBalance',({balance,required})=>{toast(`ငွေမလုံပါ (${balance}/${required} MMK)`,1);setTimeout(goHome,1800);});
+  socket.on('searchCancelled',goHome);
+  socket.on('error',({msg})=>toast(msg,1));
 }
 
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    SEARCH
-   ★ audioUnlock() is called HERE — inside the user's
-     gesture handler (findGame button tap triggers this)
-══════════════════════════════════════════════ */
-function doSearch() {
-  audioUnlock();   // ← unlock audio stack on the gesture that opens search
+═══════════════════════════════════════════════════ */
+function doSearch(){
+  audioUnlock();  // ← unlock audio on the gesture
   show('s-search');
-  socket?.emit('findGame', {userId:myId});
+  socket?.emit('findGame',{userId:myId});
 }
+function cancelSearch(){sfx('btn_r');socket?.emit('cancelSearch',{userId:myId});goHome();}
 
-function cancelSearch() {
-  sfx('btn');
-  socket?.emit('cancelSearch', {userId:myId});
-  goHome();
-}
-
-/* ══════════════════════════════════════════════
-   PREPARE GAME — pre-render board, then countdown
-══════════════════════════════════════════════ */
-async function prepareGame() {
-  busy=false; sel=null; gameOn=false;
-  myScore=0; oppScore=0; tWarnPlayed=false; t5Played=false;
-
-  document.getElementById('my-nm').textContent      = myName;
-  document.getElementById('opp-nm').textContent     = oppName;
-  document.getElementById('opp-bar-nm').textContent = oppName;
-  document.getElementById('my-sc').textContent      = '0';
-  document.getElementById('opp-sc').textContent     = '0';
-  document.getElementById('opp-bar-sc').textContent = '0';
+/* ═══════════════════════════════════════════════════
+   PREPARE GAME + COUNTDOWN
+═══════════════════════════════════════════════════ */
+async function prepareGame(){
+  busy=false;sel=null;gameOn=false;
+  myScore=0;oppScore=0;tWarnPlayed=false;t5Played=false;
+  document.getElementById('my-nm').textContent=myName;
+  document.getElementById('opp-nm').textContent=oppName;
+  document.getElementById('opp-bar-nm').textContent=oppName;
+  ['my-sc','opp-sc','opp-bar-sc'].forEach(id=>document.getElementById(id).textContent='0');
   document.getElementById('opp-dot').classList.remove('live');
-
-  // Build board + DOM (images start loading now)
-  board = makeBoard();
-  buildGrid();
-  drawAll();
-
-  // Show game screen (board underneath countdown overlay)
+  board=makeBoard(); buildGrid(); drawAll();
   show('s-game');
-
-  document.getElementById('cd-me').textContent  = myName;
-  document.getElementById('cd-opp').textContent = oppName;
-
-  // Start BG music — works because audioUnlock() was already called on gesture
+  document.getElementById('cd-me').textContent=myName;
+  document.getElementById('cd-opp').textContent=oppName;
   bgPlay();
-
   await runCountdown();
-
+  gameOn=true; lastMove=Date.now();
+  startTimer(); startHint();
+}
+function startGame(){
+  busy=false;sel=null;gameOn=false;tWarnPlayed=false;t5Played=false;
+  document.getElementById('my-nm').textContent=myName;
+  document.getElementById('opp-nm').textContent=oppName;
+  document.getElementById('opp-bar-nm').textContent=oppName;
+  document.getElementById('my-sc').textContent=String(myScore);
+  document.getElementById('opp-sc').textContent=String(oppScore);
+  document.getElementById('opp-bar-sc').textContent=String(oppScore);
+  board=makeBoard(); buildGrid(); drawAll();
+  show('s-game'); bgPlay();
   gameOn=true; lastMove=Date.now();
   startTimer(); startHint();
 }
 
-/* Resumed game — skip countdown */
-function startGame() {
-  busy=false; sel=null; gameOn=false;
-  tWarnPlayed=false; t5Played=false;
-
-  document.getElementById('my-nm').textContent      = myName;
-  document.getElementById('opp-nm').textContent     = oppName;
-  document.getElementById('opp-bar-nm').textContent = oppName;
-  document.getElementById('my-sc').textContent      = String(myScore);
-  document.getElementById('opp-sc').textContent     = String(oppScore);
-  document.getElementById('opp-bar-sc').textContent = String(oppScore);
-
-  board = makeBoard(); buildGrid(); drawAll();
-  show('s-game');
-  bgPlay();
-  gameOn=true; lastMove=Date.now();
-  startTimer(); startHint();
-}
-
-/* ══════════════════════════════════════════════
-   COUNTDOWN 1-2-3-GO!
-══════════════════════════════════════════════ */
-async function runCountdown() {
-  const ov  = document.getElementById('cd-ov');
-  const num = document.getElementById('cd-num');
-  const sub = document.getElementById('cd-sub');
+/* COUNTDOWN */
+async function runCountdown(){
+  const ov=document.getElementById('cd-ov'),num=document.getElementById('cd-num'),sub=document.getElementById('cd-sub');
   ov.classList.add('on');
-
-  const setNum = (txt, cls, subTxt) => {
-    num.textContent = txt;
-    num.className   = cls + ' cd-pop';
-    sub.textContent = subTxt;
-    num.style.animation = 'none';
-    void num.offsetWidth;
-    num.style.animation = '';
-  };
-
-  setNum('3', 'cd-3', 'ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
-  await ms(900);
-  setNum('2', 'cd-2', 'ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
-  await ms(900);
-  setNum('1', 'cd-1', 'ကစားရန် အသင့်ဖြစ်ပါ...'); sfx('btn');
-  await ms(900);
-  setNum('GO!', 'cd-go', '🍭 သကြားလုံးများ ရွှေ့ပါ!'); sfx('strip');
-  await ms(750);
-
+  const set=(t,c,s)=>{num.textContent=t;num.className=c+' cd-pop';sub.textContent=s;num.style.animation='none';void num.offsetWidth;num.style.animation='';};
+  set('3','cd-3','ကစားရန် အသင့်ဖြစ်ပါ...');sfx('btn');await ms(900);
+  set('2','cd-2','ကစားရန် အသင့်ဖြစ်ပါ...');sfx('btn');await ms(900);
+  set('1','cd-1','ကစားရန် အသင့်ဖြစ်ပါ...');sfx('btn');await ms(900);
+  set('GO!','cd-go','🍭 သကြားလုံးများ ရွှေ့ပါ!');sfx('swoosh');await ms(750);
   ov.classList.remove('on');
 }
 
-/* ══════════════════════════════════════════════
-   GRID — cells built ONCE, never re-created
-══════════════════════════════════════════════ */
-function buildGrid() {
-  const g = document.getElementById('grid');
-  g.innerHTML = '';
-  cells = [];
-  for (let r=0;r<ROWS;r++) {
-    cells.push([]);
-    for (let c=0;c<COLS;c++) {
-      const div = document.createElement('div');
-      div.className = 'cell';
-      div.dataset.r = r;
-      div.dataset.c = c;
-      const img = document.createElement('img');
-      img.draggable = false;
-      div.appendChild(img);
-      let tr=-1, tc=-1;
-      div.addEventListener('touchstart', e=>{tr=r;tc=c;e.preventDefault();}, {passive:false});
-      div.addEventListener('touchend',   e=>{if(tr===r&&tc===c)tap(r,c);e.preventDefault();}, {passive:false});
-      div.addEventListener('click',      ()=>tap(r,c));
-      g.appendChild(div);
-      cells[r].push(div);
-    }
-  }
-}
-
-function setImg(r,c,type) {
-  const img = cells[r][c].querySelector('img');
-  if (type>0) { img.src=`assets/p${type}.png`; img.style.opacity='1'; }
-  else          { img.style.opacity='0'; }
-}
-function drawAll() {
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) setImg(r,c,board[r][c]);
-}
-
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    BOARD GENERATION
-══════════════════════════════════════════════ */
-function makeBoard() {
+═══════════════════════════════════════════════════ */
+function makeBoard(){
   const b=[];
-  for (let r=0;r<ROWS;r++) {
+  for(let r=0;r<ROWS;r++){
     b.push([]);
-    for (let c=0;c<COLS;c++) {
-      let t, tries=0;
-      do { t=rc(); tries++; }
+    for(let c=0;c<COLS;c++){
+      let color,tries=0;
+      do{color=1+Math.floor(Math.random()*N_CANDY);tries++;}
       while(tries<40&&(
-        (c>=2&&b[r][c-1]===t&&b[r][c-2]===t)||
-        (r>=2&&b[r-1][c]===t&&b[r-2][c]===t)
+        (c>=2&&b[r][c-1].color===color&&b[r][c-2].color===color)||
+        (r>=2&&b[r-1][c].color===color&&b[r-2][c].color===color)
       ));
-      b[r].push(t);
+      b[r].push({color,special:SP_NONE});
     }
   }
   return b;
 }
-const rc = () => 1 + Math.floor(Math.random()*N_CANDY);
+const rc=()=>1+Math.floor(Math.random()*N_CANDY);
 
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
+   GRID — cells built ONCE
+═══════════════════════════════════════════════════ */
+function buildGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML=''; cells=[];
+  for(let r=0;r<ROWS;r++){
+    cells.push([]);
+    for(let c=0;c<COLS;c++){
+      const div=document.createElement('div');
+      div.className='cell'; div.dataset.r=r; div.dataset.c=c;
+      const img=document.createElement('img'); img.draggable=false;
+      div.appendChild(img);
+      let tr=-1,tc=-1;
+      div.addEventListener('touchstart',e=>{tr=r;tc=c;e.preventDefault();},{passive:false});
+      div.addEventListener('touchend',e=>{if(tr===r&&tc===c)tap(r,c);e.preventDefault();},{passive:false});
+      div.addEventListener('click',()=>tap(r,c));
+      g.appendChild(div); cells[r].push(div);
+    }
+  }
+}
+
+// Render a single cell from board data
+function renderCell(r,c){
+  const cell=cells[r][c];
+  const img=cell.querySelector('img');
+  const bd=board[r][c];
+  // Remove special classes
+  cell.classList.remove('is-striped-h','is-striped-v','is-bomb','is-colorbomb');
+  if(!bd||bd.color===0){img.style.opacity='0';img.src='';return;}
+  img.style.opacity='1';
+  switch(bd.special){
+    case SP_STRIPED_H: img.src='assets/StripedCandy.png'; cell.classList.add('is-striped-h'); break;
+    case SP_STRIPED_V: img.src='assets/StripedCandy.png'; cell.classList.add('is-striped-v'); break;
+    case SP_BOMB:      img.src='assets/Explosion.png';    cell.classList.add('is-bomb');      break;
+    case SP_COLORBOMB: img.src='assets/ColorBomb.png';    cell.classList.add('is-colorbomb'); break;
+    default:           img.src=`assets/p${bd.color}.png`; break;
+  }
+}
+function drawAll(){for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)renderCell(r,c);}
+
+/* ═══════════════════════════════════════════════════
    TAP HANDLER
-══════════════════════════════════════════════ */
-function tap(r,c) {
-  if (!gameOn||busy) return;
-  if (!board[r][c]) return;
+═══════════════════════════════════════════════════ */
+function tap(r,c){
+  if(!gameOn||busy)return;
+  const bd=board[r][c];
+  if(!bd||bd.color===0)return;
   resetHint(); sfx('btn');
+  // Mousedown visual
+  cells[r][c].querySelector('img').style.transform='scale(.88)';
+  setTimeout(()=>{if(cells[r]?.[c])cells[r][c].querySelector('img').style.transform='';},120);
 
-  if (!sel) { sel={r,c}; cells[r][c].classList.add('sel'); return; }
-  if (sel.r===r&&sel.c===c) { cells[r][c].classList.remove('sel'); sel=null; return; }
+  if(!sel){sel={r,c};cells[r][c].classList.add('sel');return;}
+  if(sel.r===r&&sel.c===c){cells[r][c].classList.remove('sel');sel=null;return;}
 
-  const dr=Math.abs(sel.r-r), dc=Math.abs(sel.c-c);
-  if (dr+dc===1) {
-    const f=sel; sel=null; cells[f.r][f.c].classList.remove('sel');
+  const dr=Math.abs(sel.r-r),dc=Math.abs(sel.c-c);
+  const adj=dr+dc===1;
+
+  // ColorBomb can swap with anything
+  const fromBd=board[sel.r][sel.c];
+  const isColorBombSwap=(fromBd?.special===SP_COLORBOMB||bd?.special===SP_COLORBOMB);
+
+  if(adj||isColorBombSwap){
+    const f={...sel}; sel=null; cells[f.r][f.c].classList.remove('sel');
     doSwap(f.r,f.c,r,c);
-  } else {
+  }else{
     cells[sel.r][sel.c].classList.remove('sel');
     sel={r,c}; cells[r][c].classList.add('sel');
   }
 }
 
-/* ══════════════════════════════════════════════
-   SWAP — always unlocks in finally
-══════════════════════════════════════════════ */
-async function doSwap(r1,c1,r2,c2) {
-  busy = true;
-  try {
-    swap(r1,c1,r2,c2);
-    setImg(r1,c1,board[r1][c1]); setImg(r2,c2,board[r2][c2]);
+/* ═══════════════════════════════════════════════════
+   SWAP  — always unlocks busy in finally
+═══════════════════════════════════════════════════ */
+async function doSwap(r1,c1,r2,c2){
+  busy=true;
+  try{
+    const a=board[r1][c1], b=board[r2][c2];
+
+    // ── ColorBomb + anything ──
+    if(a?.special===SP_COLORBOMB||b?.special===SP_COLORBOMB){
+      await activateColorBomb(r1,c1,r2,c2,a,b);
+      return;
+    }
+
+    // Swap data
+    [board[r1][c1],board[r2][c2]]=[board[r2][c2],board[r1][c1]];
+    renderCell(r1,c1); renderCell(r2,c2);
     addTmp(cells[r1][c1],'swpd',220); addTmp(cells[r2][c2],'swpd',220);
     await ms(220);
 
-    if (!findMatches().length) {
+    const matches=findMatches();
+    if(!matches.length){
       sfx('invalid');
-      swap(r1,c1,r2,c2);
-      setImg(r1,c1,board[r1][c1]); setImg(r2,c2,board[r2][c2]);
+      [board[r1][c1],board[r2][c2]]=[board[r2][c2],board[r1][c1]];
+      renderCell(r1,c1); renderCell(r2,c2);
       addTmp(cells[r1][c1],'shake',260); addTmp(cells[r2][c2],'shake',260);
       await ms(260);
       return;
     }
-
     sfx('swap'); lastMove=Date.now(); clearHint();
-    await cascade();
-  } finally {
-    busy = false;  // ALWAYS unlock
-  }
+    await cascade(0);
+  }finally{busy=false;}
 }
 
-function swap(r1,c1,r2,c2) {
-  [board[r1][c1],board[r2][c2]] = [board[r2][c2],board[r1][c1]];
-}
+function swapData(r1,c1,r2,c2){[board[r1][c1],board[r2][c2]]=[board[r2][c2],board[r1][c1]];}
 
-/* ══════════════════════════════════════════════
-   CASCADE
-══════════════════════════════════════════════ */
-async function cascade() {
-  let combo=0, earned=0;
-  while(true) {
-    const m = findMatches();
-    if (!m.length) break;
-    combo++;
-    earned += m.length * PTS_CANDY * (combo>1?combo:1);
+/* ═══════════════════════════════════════════════════
+   COLOR BOMB ACTIVATION
+═══════════════════════════════════════════════════ */
+async function activateColorBomb(r1,c1,r2,c2,a,b){
+  sfx('cbomb_x');
+  // Determine target color
+  const cbR=a?.special===SP_COLORBOMB?r1:r2;
+  const cbC=a?.special===SP_COLORBOMB?c1:c2;
+  const other=(a?.special===SP_COLORBOMB)?b:a;
+  const targetColor=other?.color||0;
 
-    if (combo>=3)      sfx('strip');
-    else if (combo>=2) sfx('combo');
-    else               sfx('match');
+  // Show explosion effect at colorbomb position
+  const cellEl=cells[cbR][cbC];
+  const rect=cellEl.getBoundingClientRect();
+  spawnBoom(rect.left+rect.width/2,rect.top+rect.height/2,80);
 
-    m.forEach(({r,c}) => cells[r][c].classList.add('exploding'));
-    await ms(320);
-    m.forEach(({r,c}) => {
-      cells[r][c].classList.remove('exploding');
-      board[r][c]=0; setImg(r,c,0);
-    });
+  // Clear the colorbomb cell
+  board[cbR][cbC]=null;
+  cells[cbR][cbC].classList.add('exploding-big');
+  await ms(300);
+  cells[cbR][cbC].classList.remove('exploding-big');
+  renderCell(cbR,cbC);
 
-    const fell = gravity();
-    fell.forEach(({r,c}) => { setImg(r,c,board[r][c]); addTmp(cells[r][c],'fallin',340); });
-    await ms(340);
+  // Collect and clear all cells matching targetColor (or all cells if no color)
+  const toExplode=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const bd=board[r][c];
+    if(bd&&(targetColor===0||bd.color===targetColor)&&!(r===cbR&&c===cbC)) toExplode.push({r,c});
   }
 
-  if (earned>0) {
-    myScore += earned;
-    document.getElementById('my-sc').textContent = myScore;
-    popScore(earned);
-    socket?.emit('scoreUpdate', {gameId, score:myScore});
-  }
+  // Animate explosions in waves
+  toExplode.forEach(({r,c})=>cells[r][c].classList.add('exploding'));
+  await ms(350);
+  let pts=0;
+  toExplode.forEach(({r,c})=>{
+    cells[r][c].classList.remove('exploding');
+    pts+=getCellScore(board[r][c]);
+    board[r][c]=null;
+    renderCell(r,c);
+  });
+
+  addScore(pts+50);
+  spawnScorePop(pts+50, rect.left+rect.width/2, rect.top+rect.height/2);
+  socket?.emit('scoreUpdate',{gameId,score:myScore});
+  await ms(200);
+  await applyGravityAndRefill();
+  await cascade(0);
 }
 
-/* ══════════════════════════════════════════════
-   MATCH DETECTION
-══════════════════════════════════════════════ */
-function findMatches() {
-  const s = new Set();
-  for (let r=0;r<ROWS;r++) {
+/* ═══════════════════════════════════════════════════
+   MATCH DETECTION — returns array of match groups
+   Each group: { cells:[{r,c}], direction:'h'|'v', length:n }
+═══════════════════════════════════════════════════ */
+function findMatches(){
+  const matched=new Set();
+  const groups=[];
+
+  // Horizontal
+  for(let r=0;r<ROWS;r++){
     let c=0;
-    while(c<COLS) {
-      const t=board[r][c]; if(!t){c++;continue;}
-      let n=1; while(c+n<COLS&&board[r][c+n]===t)n++;
-      if(n>=3) for(let i=0;i<n;i++) s.add(`${r},${c+i}`);
+    while(c<COLS){
+      const bd=board[r][c];
+      if(!bd||bd.special!==SP_NONE||bd.color===0){c++;continue;}
+      let n=1;
+      while(c+n<COLS){const nb=board[r][c+n];if(nb&&nb.color===bd.color&&nb.special===SP_NONE)n++;else break;}
+      if(n>=3){
+        const cells=[];
+        for(let i=0;i<n;i++)cells.push({r,c:c+i});
+        groups.push({cells,direction:'h',length:n,color:bd.color,startR:r,startC:c});
+      }
       c+=n;
     }
   }
-  for (let c=0;c<COLS;c++) {
+  // Vertical
+  for(let c=0;c<COLS;c++){
     let r=0;
-    while(r<ROWS) {
-      const t=board[r][c]; if(!t){r++;continue;}
-      let n=1; while(r+n<ROWS&&board[r+n][c]===t)n++;
-      if(n>=3) for(let i=0;i<n;i++) s.add(`${r+i},${c}`);
+    while(r<ROWS){
+      const bd=board[r][c];
+      if(!bd||bd.special!==SP_NONE||bd.color===0){r++;continue;}
+      let n=1;
+      while(r+n<ROWS){const nb=board[r+n][c];if(nb&&nb.color===bd.color&&nb.special===SP_NONE)n++;else break;}
+      if(n>=3){
+        const cells=[];
+        for(let i=0;i<n;i++)cells.push({r:r+i,c});
+        groups.push({cells,direction:'v',length:n,color:bd.color,startR:r,startC:c});
+      }
       r+=n;
     }
   }
-  return [...s].map(x=>{const[r,c]=x.split(',').map(Number);return{r,c};});
+
+  return groups;
 }
 
-/* ══════════════════════════════════════════════
-   GRAVITY
-══════════════════════════════════════════════ */
-function gravity() {
-  const fell=[];
-  for (let c=0;c<COLS;c++) {
-    const kept=[];
-    for (let r=ROWS-1;r>=0;r--) if(board[r][c]) kept.push(board[r][c]);
-    const col=[...Array(ROWS-kept.length).fill(0).map(()=>rc()), ...kept.reverse()];
-    for (let r=0;r<ROWS;r++) if(board[r][c]!==col[r]){board[r][c]=col[r];fell.push({r,c});}
+/* ═══════════════════════════════════════════════════
+   SPECIAL CANDY CREATION
+   Called when a match group qualifies
+═══════════════════════════════════════════════════ */
+function createSpecialFromMatch(group,triggeredByR,triggeredByC){
+  // Prefer placing at the swapped-to cell if it's in the group
+  const triggerInGroup=group.cells.find(cell=>cell.r===triggeredByR&&cell.c===triggeredByC);
+  const target=triggerInGroup||group.cells[Math.floor(group.cells.length/2)];
+
+  if(group.length>=5){
+    // Color Bomb
+    board[target.r][target.c]={color:group.color,special:SP_COLORBOMB};
+    sfx('cbomb_c'); return {created:true,r:target.r,c:target.c,type:SP_COLORBOMB};
   }
-  return fell;
+  if(group.length===4){
+    // Striped candy — direction perpendicular to match direction
+    const sp=group.direction==='h'?SP_STRIPED_V:SP_STRIPED_H;
+    board[target.r][target.c]={color:group.color,special:sp};
+    sfx('striped_c'); return {created:true,r:target.r,c:target.c,type:sp};
+  }
+  return {created:false};
 }
 
-/* ══════════════════════════════════════════════
-   HINT SYSTEM (10s idle)
-══════════════════════════════════════════════ */
-function startHint() {
-  stopHint(); lastMove=Date.now();
-  hintInt = setInterval(()=>{
-    if (!gameOn||busy) return;
-    if (Date.now()-lastMove >= HINT_IDLE) showHint();
-  }, 1000);
-}
-function stopHint()  { clearInterval(hintInt); hintInt=null; clearHint(); hideHintBar(); }
-function resetHint() { lastMove=Date.now(); clearHint(); hideHintBar(); }
+/* ═══════════════════════════════════════════════════
+   CASCADE — main loop
+═══════════════════════════════════════════════════ */
+async function cascade(comboCount){
+  const groups=findMatches();
+  if(!groups.length){
+    if(comboCount>0) spawnComboLabel(comboCount);
+    return;
+  }
 
-function showHint() {
-  clearHint();
-  const move = findAnyMove();
-  if (!move) return;
-  hintCells = [move.from, move.to];
-  hintCells.forEach(({r,c}) => cells[r]?.[c]?.classList.add('hint'));
-  showHintBar();
-}
-function clearHint() {
-  hintCells.forEach(({r,c}) => cells[r]?.[c]?.classList.remove('hint'));
-  hintCells = [];
-}
-function showHintBar() {
-  clearTimeout(hintTimer);
-  document.getElementById('hint-bar').classList.add('on');
-  hintTimer = setTimeout(hideHintBar, 3500);
-}
-function hideHintBar() { document.getElementById('hint-bar').classList.remove('on'); }
+  // Collect all matched cells (deduplicated)
+  const matchedSet=new Set();
+  groups.forEach(g=>g.cells.forEach(cell=>matchedSet.add(`${cell.r},${cell.c}`)));
+  const matchedArr=[...matchedSet].map(s=>{const[r,c]=s.split(',').map(Number);return{r,c};});
 
-function findAnyMove() {
-  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
-    if (c+1<COLS) {
-      swap(r,c,r,c+1); const ok=findMatches().length>0; swap(r,c,r,c+1);
-      if (ok) return {from:{r,c},to:{r,c:c+1}};
+  // Choose sound
+  if(comboCount===0)      sfx('match');
+  else if(comboCount===1) sfx('combo2');
+  else if(comboCount===2) sfx('tasty');
+  else if(comboCount===3) sfx('delicious');
+  else                    sfx('divine');
+
+  // Mark exploding
+  matchedArr.forEach(({r,c})=>cells[r][c].classList.add('exploding'));
+  await ms(320);
+
+  // Collect score & special candy triggers
+  let pts=0;
+  const specialTriggers=[];
+  matchedArr.forEach(({r,c})=>{
+    const bd=board[r][c];
+    pts+=getCellScore(bd);
+    if(bd?.special===SP_STRIPED_H||bd?.special===SP_STRIPED_V||bd?.special===SP_BOMB) specialTriggers.push({r,c,special:bd.special});
+    board[r][c]=null;
+    cells[r][c].classList.remove('exploding');
+    renderCell(r,c);
+  });
+
+  // Create special candies from qualifying matches
+  const lastSwapR=sel?.r??0, lastSwapC=sel?.c??0;
+  for(const g of groups){
+    if(g.length>=4){
+      const res=createSpecialFromMatch(g,lastSwapR,lastSwapC);
+      if(res.created){renderCell(res.r,res.c);sfx('striped_c');}
     }
-    if (r+1<ROWS) {
-      swap(r,c,r+1,c); const ok=findMatches().length>0; swap(r,c,r+1,c);
-      if (ok) return {from:{r,c},to:{r:r+1,c}};
-    }
+  }
+
+  addScore(pts);
+  if(matchedArr.length>0) spawnScorePop(pts, getCellMidX(matchedArr[0].c), getCellMidY(matchedArr[0].r));
+  socket?.emit('scoreUpdate',{gameId,score:myScore});
+
+  await ms(100);
+
+  // Trigger special candy explosions
+  for(const trig of specialTriggers) await triggerSpecial(trig.r,trig.c,trig.special);
+
+  await applyGravityAndRefill();
+  await cascade(comboCount+1);
+}
+
+/* Trigger a special candy at r,c */
+async function triggerSpecial(r,c,specialType){
+  if(specialType===SP_STRIPED_H||specialType===SP_STRIPED_V){
+    await triggerStriped(r,c,specialType);
+  } else if(specialType===SP_BOMB){
+    await triggerBomb(r,c);
+  }
+}
+
+/* ── STRIPED CANDY ── */
+async function triggerStriped(r,c,type){
+  sfx('swoosh');
+  const isH=type===SP_STRIPED_H;
+  const toExplode=[];
+  if(isH){ for(let cc=0;cc<COLS;cc++) if(board[r][cc]) toExplode.push({r,c:cc}); }
+  else    { for(let rr=0;rr<ROWS;rr++) if(board[rr][c]) toExplode.push({r:rr,c}); }
+
+  // Laser beam visual
+  spawnLaser(r,c,isH);
+
+  toExplode.forEach(pos=>cells[pos.r][pos.c].classList.add('exploding'));
+  await ms(300);
+  let pts=0;
+  toExplode.forEach(pos=>{
+    pts+=getCellScore(board[pos.r][pos.c]);
+    board[pos.r][pos.c]=null;
+    cells[pos.r][pos.c].classList.remove('exploding');
+    renderCell(pos.r,pos.c);
+  });
+  addScore(pts);
+  socket?.emit('scoreUpdate',{gameId,score:myScore});
+}
+
+/* ── BOMB ── */
+async function triggerBomb(r,c){
+  sfx('cbomb_x');
+  const rect=cells[r][c].getBoundingClientRect();
+  spawnBoom(rect.left+rect.width/2,rect.top+rect.height/2,55);
+  const toExplode=[];
+  for(let dr=-2;dr<=2;dr++) for(let dc=-2;dc<=2;dc++){
+    if(Math.abs(dr)+Math.abs(dc)<=2){const rr=r+dr,cc=c+dc;if(rr>=0&&rr<ROWS&&cc>=0&&cc<COLS&&board[rr][cc]) toExplode.push({r:rr,c:cc});}
+  }
+  toExplode.forEach(pos=>cells[pos.r][pos.c].classList.add('exploding-big'));
+  await ms(350);
+  let pts=0;
+  toExplode.forEach(pos=>{
+    pts+=getCellScore(board[pos.r][pos.c]);
+    board[pos.r][pos.c]=null;
+    cells[pos.r][pos.c].classList.remove('exploding-big');
+    renderCell(pos.r,pos.c);
+  });
+  addScore(pts);
+  socket?.emit('scoreUpdate',{gameId,score:myScore});
+}
+
+/* ═══════════════════════════════════════════════════
+   GRAVITY + REFILL
+═══════════════════════════════════════════════════ */
+async function applyGravityAndRefill(){
+  const fell=[];
+  for(let c=0;c<COLS;c++){
+    const stack=[];
+    for(let r=ROWS-1;r>=0;r--) if(board[r][c]) stack.push(board[r][c]);
+    const newCount=ROWS-stack.length;
+    const col=[...Array(newCount).fill(null).map(()=>({color:rc(),special:SP_NONE})),...stack.reverse()];
+    for(let r=0;r<ROWS;r++){if(board[r][c]!==col[r]){board[r][c]=col[r];fell.push({r,c});}}
+  }
+  fell.forEach(({r,c})=>{renderCell(r,c);addTmp(cells[r][c],'fallin',340);});
+  if(fell.length) await ms(340);
+}
+
+/* ═══════════════════════════════════════════════════
+   VISUAL EFFECTS
+═══════════════════════════════════════════════════ */
+function getCellMidX(c){const g=document.getElementById('grid');const w=g.offsetWidth/COLS;return g.getBoundingClientRect().left+w*c+w/2;}
+function getCellMidY(r){const g=document.getElementById('grid');const h=g.offsetHeight/ROWS;return g.getBoundingClientRect().top+h*r+h/2;}
+
+function spawnLaser(r,c,isH){
+  const g=document.getElementById('grid');
+  const rect=g.getBoundingClientRect();
+  const cw=rect.width/COLS, ch=rect.height/ROWS;
+  const el=document.createElement('div');
+  if(isH){
+    el.className='laser-h';
+    el.style.top=(rect.top+ch*r+ch/2-3)+'px';
+    el.style.left=rect.left+'px';
+    el.style.width=rect.width+'px';
+  }else{
+    el.className='laser-v';
+    el.style.left=(rect.left+cw*c+cw/2-3)+'px';
+    el.style.top=rect.top+'px';
+    el.style.height=rect.height+'px';
+  }
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),400);
+}
+
+function spawnBoom(x,y,size){
+  const el=document.createElement('div');
+  el.className='boom';
+  const s=size??60;
+  el.style.cssText=`left:${x-s/2}px;top:${y-s/2}px;width:${s}px;height:${s}px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),500);
+}
+
+function spawnScorePop(pts,x,y){
+  const el=document.createElement('div');
+  el.className='score-label';
+  el.textContent=`+${pts}`;
+  el.style.cssText=`left:${(x||window.innerWidth/2)-20}px;top:${(y||window.innerHeight/2)-20}px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1050);
+}
+
+function spawnComboLabel(n){
+  const msgs=['','','Tasty! 🍭','Delicious! 🍬','Divine! ✨','Sugar Crush! 🌟'];
+  const colors=['','','#ffd700','#ff69b4','#00cfff','#ffffff'];
+  const msg=msgs[Math.min(n,5)]||`x${n} Combo! 🎉`;
+  const color=colors[Math.min(n,5)]||'#fff';
+  const el=document.createElement('div');
+  el.className='combo-label';
+  el.textContent=msg;
+  el.style.cssText=`left:50%;top:50%;color:${color};background:rgba(0,0,0,.4);`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1300);
+}
+
+/* ═══════════════════════════════════════════════════
+   SCORE
+═══════════════════════════════════════════════════ */
+function getCellScore(bd){if(!bd||bd.color===0)return 0;return bd.special===SP_NONE?10:50;}
+function addScore(pts){
+  if(pts<=0)return;
+  myScore+=pts;
+  document.getElementById('my-sc').textContent=myScore;
+}
+
+/* ═══════════════════════════════════════════════════
+   HINT SYSTEM
+═══════════════════════════════════════════════════ */
+function startHint(){stopHint();lastMove=Date.now();hintInt=setInterval(()=>{if(!gameOn||busy)return;if(Date.now()-lastMove>=HINT_IDLE)showHint();},1000);}
+function stopHint(){clearInterval(hintInt);hintInt=null;clearHint();hideHintBar();}
+function resetHint(){lastMove=Date.now();clearHint();hideHintBar();}
+function showHint(){clearHint();const move=findAnyMove();if(!move)return;hintCells=[move.from,move.to];hintCells.forEach(({r,c})=>cells[r]?.[c]?.classList.add('hint'));showHintBar();}
+function clearHint(){hintCells.forEach(({r,c})=>cells[r]?.[c]?.classList.remove('hint'));hintCells=[];}
+function showHintBar(){clearTimeout(hintTimer);document.getElementById('hint-bar').classList.add('on');hintTimer=setTimeout(hideHintBar,3500);}
+function hideHintBar(){document.getElementById('hint-bar').classList.remove('on');}
+function findAnyMove(){
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    if(c+1<COLS){swapData(r,c,r,c+1);const ok=findMatches().length>0;swapData(r,c,r,c+1);if(ok)return{from:{r,c},to:{r,c:c+1}};}
+    if(r+1<ROWS){swapData(r,c,r+1,c);const ok=findMatches().length>0;swapData(r,c,r+1,c);if(ok)return{from:{r,c},to:{r:r+1,c}};}
   }
   return null;
 }
 
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    TIMER
-══════════════════════════════════════════════ */
-function startTimer() {
-  clearInterval(timerInt); renderTimer();
-  timerInt = setInterval(()=>{
-    timeLeft = Math.max(0, timeLeft-1); renderTimer();
-    if (timeLeft===30 && !tWarnPlayed) { tWarnPlayed=true; sfx('twarn'); }
-    if (timeLeft<=5  && timeLeft>0 && !t5Played) { t5Played=true; sfx('five'); }
-    if (timeLeft===0) { clearInterval(timerInt); gameOn=false; stopHint(); }
-  }, 1000);
+═══════════════════════════════════════════════════ */
+function startTimer(){
+  clearInterval(timerInt);renderTimer();
+  timerInt=setInterval(()=>{
+    timeLeft=Math.max(0,timeLeft-1);renderTimer();
+    if(timeLeft===30&&!tWarnPlayed){tWarnPlayed=true;sfx('twarn');}
+    if(timeLeft<=5&&timeLeft>0&&!t5Played){t5Played=true;sfx('five');}
+    if(timeLeft===0){clearInterval(timerInt);gameOn=false;stopHint();}
+  },1000);
 }
-function renderTimer() {
-  const m=Math.floor(timeLeft/60), s=timeLeft%60;
+function renderTimer(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
   const el=document.getElementById('timer');
-  el.textContent = `${m}:${String(s).padStart(2,'0')}`;
-  el.classList.toggle('hot', timeLeft<=30);
+  el.textContent=`${m}:${String(s).padStart(2,'0')}`;
+  el.classList.toggle('hot',timeLeft<=30);
 }
 
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    RESULT
-══════════════════════════════════════════════ */
-function showResult(winner, myF, oppF, reason) {
-  clearInterval(timerInt); stopHint();
-  const win  = String(winner)===String(myId);
-  const draw = winner===-1 || winner==null;
-
-  sfx(win ? 'win' : draw ? 'btn' : 'lose');
-
-  document.getElementById('r-ic').textContent = win?'🏆':draw?'🤝':'😢';
-  const t = document.getElementById('r-ti');
-  t.textContent = win?'အနိုင်ရသည်! 🎉':draw?'သရေကျသည်':'ရှုံးသွားသည်';
-  t.className   = 'r-ti '+(win?'win':draw?'draw':'lose');
-
-  document.getElementById('r-my-nm').textContent = myName;
-  document.getElementById('r-op-nm').textContent = oppName;
-  const mEl=document.getElementById('r-my-sc');
-  const oEl=document.getElementById('r-op-sc');
-  mEl.textContent = myF; oEl.textContent = oppF;
-  mEl.className   = 'rs-v'+(win?' hl':'');
-  oEl.className   = 'rs-v'+(!win&&!draw?' hl':'');
-
-  const p = document.getElementById('r-prz');
-  if (win)                  p.textContent = '🏆 +800 MMK ရွှေငွေ ရပြီ!';
-  else if (draw)            p.textContent = '🤝 250 MMK ပြန်ရမည်';
-  else if (reason==='disconnect') p.textContent = '📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
-  else                      p.textContent = '😢 နောက်တစ်ကြိမ် ကြိုးစားပါ!';
-
+═══════════════════════════════════════════════════ */
+function showResult(winner,myF,oppF,reason){
+  clearInterval(timerInt);stopHint();
+  const win=String(winner)===String(myId);
+  const draw=winner===-1||winner==null;
+  if(win){sfx('win');setTimeout(()=>sfx('sugar'),600);}
+  else if(!draw) sfx('lose');
+  document.getElementById('r-ic').textContent=win?'🏆':draw?'🤝':'😢';
+  const t=document.getElementById('r-ti');
+  t.textContent=win?'အနိုင်ရသည်! 🎉':draw?'သရေကျသည်':'ရှုံးသွားသည်';
+  t.className='r-ti '+(win?'win':draw?'draw':'lose');
+  document.getElementById('r-my-nm').textContent=myName;
+  document.getElementById('r-op-nm').textContent=oppName;
+  const mEl=document.getElementById('r-my-sc'),oEl=document.getElementById('r-op-sc');
+  mEl.textContent=myF;oEl.textContent=oppF;
+  mEl.className='rs-v'+(win?' hl':'');oEl.className='rs-v'+(!win&&!draw?' hl':'');
+  const p=document.getElementById('r-prz');
+  if(win)p.textContent='🏆 +800 MMK ရွှေငွေ ရပြီ!';
+  else if(draw)p.textContent='🤝 250 MMK ပြန်ရမည်';
+  else if(reason==='disconnect')p.textContent='📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
+  else p.textContent='😢 နောက်တစ်ကြိမ် ကြိုးစားပါ!';
   show('s-result');
 }
 
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    NAVIGATION
-══════════════════════════════════════════════ */
-function show(id) {
-  document.querySelectorAll('.scr').forEach(s => s.classList.remove('on'));
-  document.getElementById(id)?.classList.add('on');
-}
-function replayGame() {
-  myScore=0; oppScore=0; gameId=null; sel=null; busy=false;
-  clearInterval(timerInt); stopHint(); bgStop();
-  doSearch();
-}
-function goHome() { bgStop(); tg ? tg.close() : (location.href='/'); }
+═══════════════════════════════════════════════════ */
+function show(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id)?.classList.add('on');}
+function replayGame(){myScore=0;oppScore=0;gameId=null;sel=null;busy=false;clearInterval(timerInt);stopHint();bgStop();doSearch();}
+function goHome(){bgStop();tg?tg.close():(location.href='/');}
 
-/* ══════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════
    UTILS
-══════════════════════════════════════════════ */
-const ms = t => new Promise(r => setTimeout(r, t));
-
-function addTmp(el, cls, dur) {
-  el.classList.add(cls);
-  setTimeout(() => el.classList.remove(cls), dur);
-}
-function popScore(pts) {
-  const el=document.createElement('div');
-  el.className='scpop'; el.textContent=`+${pts}`;
-  el.style.left=(18+Math.random()*58)+'%';
-  el.style.top =(22+Math.random()*38)+'%';
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 950);
-}
+═══════════════════════════════════════════════════ */
+const ms=t=>new Promise(r=>setTimeout(r,t));
+function addTmp(el,cls,dur){el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),dur);}
 let _tt=null;
-function toast(msg, err=0) {
-  const el=document.getElementById('toast'), ti=document.getElementById('ti');
-  ti.textContent = (err?'⚠️ ':'✅ ')+msg;
-  ti.className   = 'ti '+(err?'terr':'tok');
-  el.classList.add('on');
-  clearTimeout(_tt);
-  _tt = setTimeout(()=>el.classList.remove('on'), 2700);
+function toast(msg,err=0){
+  const el=document.getElementById('toast'),ti=document.getElementById('ti');
+  ti.textContent=(err?'⚠️ ':'✅ ')+msg;ti.className='ti '+(err?'terr':'tok');
+  el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2700);
 }
 </script>
 </body>
