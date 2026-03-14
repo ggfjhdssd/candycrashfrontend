@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🍭 Candy Crush</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07070f;--sur:rgba(255,255,255,.042);--bdr:rgba(255,255,255,.075);
+  --acc:#5c35f5;--pk:#f54565;--grn:#00cc88;--blu:#3d9eff;--ylw:#f5b800;
+  --tx:#eaeaf2;--sub:rgba(255,255,255,.36);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);min-height:100vh;color:var(--tx);overflow-x:hidden;}
+
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.orb1{position:absolute;width:550px;height:550px;border-radius:50%;top:-120px;left:-100px;
+  background:radial-gradient(circle,rgba(92,53,245,.16) 0%,transparent 70%);
+  animation:o1 20s ease-in-out infinite alternate;}
+.orb2{position:absolute;width:450px;height:450px;border-radius:50%;bottom:-100px;right:-80px;
+  background:radial-gradient(circle,rgba(245,69,101,.11) 0%,transparent 70%);
+  animation:o2 16s ease-in-out infinite alternate;}
+@keyframes o1{0%{transform:translate(0,0)}100%{transform:translate(50px,35px) scale(1.1)}}
+@keyframes o2{0%{transform:translate(0,0)}100%{transform:translate(-40px,-30px) scale(1.15)}}
+.gbg{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+  background-size:38px 38px;}
+
+#ldr{position:fixed;inset:0;background:var(--bg);z-index:1000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity .35s;}
+.ldr-t{font-size:2rem;font-weight:900;letter-spacing:-.03em;
+  background:linear-gradient(135deg,#a78bfa,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ring{width:34px;height:34px;border:3px solid rgba(255,255,255,.1);border-top-color:#7c5af5;
+  border-radius:50%;animation:spin .85s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#app{position:relative;z-index:1;max-width:435px;margin:0 auto;padding:12px 13px 40px;display:none;}
+
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:18px;backdrop-filter:blur(18px);}
+.p4{padding:16px;}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.logo{font-size:1.2rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#f472b6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.relbtn{background:var(--sur);border:1px solid var(--bdr);border-radius:10px;padding:9px;
+  cursor:pointer;display:flex;transition:.18s;}
+.relbtn:active{transform:scale(.9);}
+
+/* Balance */
+.bal-card{background:linear-gradient(135deg,rgba(92,53,245,.1),rgba(245,69,101,.07));
+  border:1px solid rgba(92,53,245,.18);border-radius:16px;padding:18px 18px 14px;
+  margin-bottom:11px;position:relative;overflow:hidden;}
+.bal-card::before{content:'';position:absolute;top:-40px;right:-30px;width:130px;height:130px;
+  background:radial-gradient(circle,rgba(92,53,245,.12),transparent);border-radius:50%;}
+.bal-lbl{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.bal-num{font-size:2.7rem;font-weight:900;letter-spacing:-.03em;line-height:1;
+  background:linear-gradient(135deg,#86efac,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.bal-mmk{font-size:13px;font-weight:800;color:#34d399;margin-left:5px;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:11px;}
+.stat{background:var(--sur);border:1px solid var(--bdr);border-radius:13px;padding:12px 8px;text-align:center;}
+.sn{font-size:1.45rem;font-weight:900;line-height:1;}
+.sl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-top:3px;}
+
+/* Buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:7px;
+  font-family:'Outfit',sans-serif;font-weight:700;border:none;cursor:pointer;
+  border-radius:13px;padding:13px;width:100%;color:#fff;transition:all .16s;font-size:14px;
+  position:relative;overflow:hidden;}
+.btn:active{transform:scale(.96);}
+.btn-play{background:linear-gradient(135deg,#5c35f5,#9333ea);box-shadow:0 6px 24px rgba(92,53,245,.32);font-size:1.05rem;}
+.btn-grn{background:linear-gradient(135deg,#059669,#10b981);box-shadow:0 4px 14px rgba(16,185,129,.22);}
+.btn-blu{background:linear-gradient(135deg,#1d4ed8,#3b82f6);box-shadow:0 4px 14px rgba(59,130,246,.22);}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}
+
+/* Panel */
+.panel{max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .42s cubic-bezier(.4,0,.2,1),opacity .3s,margin .3s;pointer-events:none;}
+.panel.open{max-height:900px;opacity:1;margin-top:10px;pointer-events:auto;}
+
+/* Input */
+.inp{width:100%;padding:12px 14px;background:rgba(0,0,0,.22);border:1px solid var(--bdr);
+  border-radius:11px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:14px;outline:none;transition:.25s;}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(92,53,245,.17);}
+.inp::placeholder{color:rgba(255,255,255,.18);}
+.fcol{display:flex;flex-direction:column;gap:9px;}
+
+/* KPay */
+.kbox{background:rgba(0,0,0,.18);border:1px solid rgba(245,184,0,.16);border-radius:13px;padding:13px;}
+.krow{display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,255,255,.04);border:1px solid var(--bdr);border-radius:10px;
+  padding:11px 13px;margin-bottom:7px;}
+.knum{font-family:monospace;font-size:1.1rem;font-weight:700;letter-spacing:.06em;}
+.cpybtn{background:rgba(245,184,0,.14);color:var(--ylw);border:none;
+  padding:6px 13px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:.15s;}
+.cpybtn:active{transform:scale(.92);}
+
+/* Payment Method Tabs */
+.pay-tabs{display:flex;gap:8px;margin-bottom:12px;}
+.pay-tab{flex:1;padding:10px 0;border-radius:10px;border:2px solid var(--bdr);
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-weight:700;
+  font-size:13px;cursor:pointer;font-family:'Outfit',sans-serif;transition:.2s;text-align:center;}
+.pay-tab.active-kpay{border-color:#f5b800;color:#f5b800;background:rgba(245,184,0,.1);}
+.pay-tab.active-wave{border-color:#00c4a8;color:#00c4a8;background:rgba(0,196,168,.1);}
+.wave-kbox{background:rgba(0,0,0,.18);border:1px solid rgba(0,196,168,.22);border-radius:13px;padding:13px;}
+.wave-num{font-family:monospace;font-size:1.1rem;font-weight:700;letter-spacing:.06em;color:#00e5cc;}
+
+/* Referral send */
+.refwrap{position:relative;}
+.refinp{padding-right:80px;font-size:13px;color:#a78bfa;}
+.refsend{position:absolute;right:5px;top:50%;transform:translateY(-50%);
+  background:linear-gradient(135deg,#5c35f5,#9333ea);color:#fff;border:none;
+  padding:7px 13px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer;
+  font-family:'Outfit',sans-serif;}
+.refsend:active{transform:translateY(-50%) scale(.93);}
+
+/* Ref list */
+.ref-tabs{display:flex;background:rgba(0,0,0,.18);border-radius:9px;padding:3px;gap:3px;margin-bottom:11px;}
+.rtab{flex:1;padding:7px;border-radius:7px;border:none;background:transparent;
+  color:var(--sub);font-family:'Outfit',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:.2s;}
+.rtab.on{background:rgba(92,53,245,.45);color:#fff;}
+.ref-item{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.ref-item:last-child{border:none;}
+
+/* Rules */
+.rule-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.ritem{background:rgba(255,255,255,.025);border:1px solid var(--bdr);border-radius:12px;
+  padding:13px 8px;text-align:center;transition:.22s;}
+.ritem:hover{background:rgba(255,255,255,.055);transform:translateY(-2px);}
+.rico{font-size:1.5rem;margin-bottom:6px;}
+.rlbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.rval{font-size:.88rem;font-weight:800;}
+
+/* Section title */
+.stitle{font-size:.95rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+
+/* Toast */
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-70px);
+  z-index:9999;transition:all .38s cubic-bezier(.68,-.55,.265,1.55);opacity:0;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.ti{padding:10px 20px;border-radius:100px;font-size:13px;font-weight:700;
+  backdrop-filter:blur(20px);display:flex;align-items:center;gap:7px;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.45);}
+.tok{background:rgba(0,204,136,.88);border:1px solid #34d399;color:#fff;}
+.terr{background:rgba(239,68,68,.88);border:1px solid #f87171;color:#fff;}
+
+/* Spinner */
+.spn{width:15px;height:15px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;
+  border-radius:50%;animation:spin .8s linear infinite;}
+
+/* Animations */
+@keyframes fu{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fu .44s cubic-bezier(.16,1,.3,1) both;}
+.d1{animation-delay:.06s}.d2{animation-delay:.12s}.d3{animation-delay:.18s}.d4{animation-delay:.24s}
+
+/* Warn */
+.warnbox{background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:9px;
+  padding:9px 12px;margin-top:9px;font-size:12px;color:#fca5a5;text-align:center;}
+.infobox{background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:10px;
+  padding:11px;margin-bottom:12px;font-size:13px;color:#93c5fd;line-height:1.7;}
+
+/* Redeem Code panel accent */
+.btn-gld{background:linear-gradient(135deg,#b45309,#f59e0b);box-shadow:0 4px 14px rgba(245,158,11,.22);}
+.rdm-code-inp{letter-spacing:.14em;text-transform:uppercase;font-weight:700;font-size:15px;}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb1"></div><div class="orb2"></div><div class="gbg"></div></div>
+<div id="ldr"><div class="ldr-t">🎮 🍭 Candy Crush</div><div class="ring"></div></div>
+<div id="toast"><div class="ti" id="ti"></div></div>
+
+<div id="app">
+
+  <!-- Header -->
+  <div class="hdr fu">
+    <div class="logo">🎮 🍭 Candy Crush</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:var(--sub);">မင်္ဂလာပါ</div>
+        <div style="font-size:13px;font-weight:700;" id="uname">—</div>
+      </div>
+      <button class="relbtn" onclick="refreshBal()">
+        <svg id="rico" width="16" height="16" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Balance -->
+  <div class="bal-card fu d1">
+    <div class="bal-lbl">💰 လက်ကျန်ငွေ</div>
+    <div style="display:flex;align-items:baseline;">
+      <div class="bal-num" id="balNum">0</div>
+      <div class="bal-mmk">MMK</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats fu d1">
+    <div class="stat">
+      <div class="sn" id="sG">0</div>
+      <div class="sl">ကစားကြိမ်</div>
+    </div>
+    <div class="stat" style="border-color:rgba(0,204,136,.18);">
+      <div class="sn" style="color:var(--grn);" id="sW">0</div>
+      <div class="sl">အနိုင်ရရှိ</div>
+    </div>
+    <div class="stat" style="border-color:rgba(245,69,101,.18);">
+      <div class="sn" style="color:var(--pk);" id="sL">0</div>
+      <div class="sl">ရှုံးထားခြင်း</div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="card p4 fu d2" style="margin-bottom:11px;">
+    <div class="btn-row">
+      <button class="btn btn-grn" onclick="togglePanel('dep')">💰 ငွေဖြည့်ရန်</button>
+      <button class="btn btn-blu" onclick="togglePanel('wd')">💸 ငွေထုတ်ရန်</button>
+    </div>
+    <button class="btn btn-gld" style="margin-bottom:9px;" onclick="togglePanel('rdm')">🎟️ Redeem Code ထည့်ရန်</button>
+    <a href="/play.html" class="btn btn-play" style="text-decoration:none;">🍭 ယခုပင် ကစားမည်</a>
+  </div>
+
+  <!-- Deposit Panel -->
+  <div class="panel" id="dep">
+    <div class="card p4">
+      <div class="stitle">💰 ငွေဖြည့်သွင်းရန်</div>
+
+      <!-- Payment Method Tabs -->
+      <div class="pay-tabs">
+        <button class="pay-tab active-kpay" id="dep-tab-kpay" onclick="switchDepMethod('kpay')">📱 KPay</button>
+        <button class="pay-tab" id="dep-tab-wave" onclick="switchDepMethod('wave')">📱 Wave Pay</button>
+      </div>
+
+      <!-- KPay Info -->
+      <div id="dep-kpay-info" class="kbox" style="margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--ylw);font-weight:700;margin-bottom:9px;">📱 အောက်ပါ KPay သို့ ငွေလွှဲပါ</div>
+        <div class="krow">
+          <div>
+            <div style="font-size:10px;color:var(--sub);text-transform:uppercase;margin-bottom:2px;">KPay နံပါတ်</div>
+            <div class="knum" id="dep-kpay-number">09792310926</div>
+          </div>
+          <button class="cpybtn" id="dep-kpay-copy-num" onclick="copyTxt('09792310926')">Copy</button>
+        </div>
+        <div class="krow" style="margin-bottom:0;">
+          <div>
+            <div style="font-size:10px;color:var(--sub);text-transform:uppercase;margin-bottom:2px;">အကောင့်ပိုင်ရှင်</div>
+            <div style="font-weight:700;" id="dep-kpay-name">Daw Mi Thaung</div>
+          </div>
+          <button class="cpybtn" id="dep-kpay-copy-name" onclick="copyTxt('Daw Mi Thaung')">Copy</button>
+        </div>
+        <div class="warnbox">⚠️ ငွေလွှဲပြီးမှသာ Form ဖြည့်ပါ</div>
+      </div>
+
+      <!-- Wave Pay Info -->
+      <div id="dep-wave-info" class="wave-kbox" style="margin-bottom:12px;display:none;">
+        <div style="font-size:11px;color:#00e5cc;font-weight:700;margin-bottom:9px;">📱 အောက်ပါ Wave Pay သို့ ငွေလွှဲပါ</div>
+        <div class="krow">
+          <div>
+            <div style="font-size:10px;color:var(--sub);text-transform:uppercase;margin-bottom:2px;">Wave Pay နံပါတ်</div>
+            <div class="wave-num">09792310926</div>
+          </div>
+          <button class="cpybtn" style="background:rgba(0,196,168,.14);color:#00e5cc;" onclick="copyTxt('09792310926')">Copy</button>
+        </div>
+        <div class="krow" style="margin-bottom:0;">
+          <div>
+            <div style="font-size:10px;color:var(--sub);text-transform:uppercase;margin-bottom:2px;">အကောင့်ပိုင်ရှင်</div>
+            <div style="font-weight:700;">Min Oak Soe</div>
+          </div>
+          <button class="cpybtn" style="background:rgba(0,196,168,.14);color:#00e5cc;" onclick="copyTxt('Min Oak Soe')">Copy</button>
+        </div>
+        <div class="warnbox" style="background:rgba(0,196,168,.07);border-color:rgba(0,196,168,.2);color:#a7f3ee;">⚠️ ငွေလွှဲပြီးမှသာ Form ဖြည့်ပါ</div>
+      </div>
+
+      <div class="fcol">
+        <input class="inp" id="dN" placeholder="သင့် အမည် (KPay / Wave Pay)">
+        <input class="inp" id="dT" placeholder="Transaction ID">
+        <input class="inp" id="dA" type="number" placeholder="ငွေပမာဏ (အနည်းဆုံး 500 MMK)" min="500">
+        <button class="btn btn-grn" onclick="submitDep()">
+          <span id="dTx">✅ အတည်ပြုမည်</span><div class="spn" id="dSp" style="display:none;"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdraw Panel -->
+  <div class="panel" id="wd">
+    <div class="card p4">
+      <div class="stitle">💸 ငွေထုတ်ယူရန်</div>
+      <div class="infobox">
+        • အနည်းဆုံး <b style="color:#fff;">2,500 MMK</b> မှ ထုတ်ယူနိုင်သည်<br>
+        • Admin စစ်ဆေးပြီး ၂၄ နာရီအတွင်း လွှဲပေးမည်
+      </div>
+
+      <!-- Payment Method Tabs -->
+      <div class="pay-tabs">
+        <button class="pay-tab active-kpay" id="wd-tab-kpay" onclick="switchWdMethod('kpay')">📱 KPay ဖြင့် ထုတ်မည်</button>
+        <button class="pay-tab" id="wd-tab-wave" onclick="switchWdMethod('wave')">📱 Wave Pay ဖြင့် ထုတ်မည်</button>
+      </div>
+
+      <div class="fcol">
+        <input class="inp" id="wN" placeholder="ငွေလက်ခံမည့် အမည်">
+        <input class="inp" id="wP" placeholder="ဖုန်းနံပါတ် (09xxxxxxx)">
+        <input class="inp" id="wA" type="number" placeholder="ထုတ်ယူမည့် ပမာဏ (အနည်းဆုံး 2,500)" min="2500">
+        <button class="btn btn-blu" onclick="submitWd()">
+          <span id="wTx">💸 ထုတ်ယူမည်</span><div class="spn" id="wSp" style="display:none;"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Redeem Code Panel -->
+  <div class="panel" id="rdm">
+    <div class="card p4">
+      <div class="stitle">🎟️ Redeem Code ထည့်ရန်</div>
+      <div class="infobox" style="background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.2);color:#fde68a;">
+        🎁 Promo Code ရိုက်ထည့်ပြီး ဆုကြေးငွေ ရယူပါ!
+      </div>
+      <div class="fcol">
+        <input class="inp rdm-code-inp" id="rdmCode" placeholder="CODE ရိုက်ထည့်ပါ" autocomplete="off"
+          oninput="this.value=this.value.toUpperCase()">
+        <button class="btn btn-gld" onclick="submitRedeem()">
+          <span id="rdmTx">🎟️ အတည်ပြုမည်</span><div class="spn" id="rdmSp" style="display:none;"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral -->
+  <div class="card p4 fu d3" style="margin-bottom:11px;">
+    <div class="stitle">🔗 သူငယ်ချင်းများဖိတ်ခေါ်ရန်</div>
+    <div style="font-size:13px;color:var(--sub);margin-bottom:12px;line-height:1.7;">
+      သူငယ်ချင်း တစ်ယောက်မှ <b style="color:#fff;">500 MMK</b> ဖြည့်တိုင်း
+      သင် <b style="color:var(--grn);">100 MMK</b> ရမည်!
+    </div>
+    <div class="refwrap" style="margin-bottom:13px;">
+      <input class="inp refinp" id="refL" readonly value="Loading...">
+      <button class="refsend" onclick="sendRef()">📤 Send</button>
+    </div>
+
+    <div class="ref-tabs">
+      <button class="rtab on" id="rt-link" onclick="rtab('link')">🔗 Link</button>
+      <button class="rtab" id="rt-list" onclick="rtab('list')">👥 ဖိတ်ထားသူများ (<span id="refCnt">0</span>)</button>
+    </div>
+    <div id="refList" style="display:none;min-height:50px;">
+      <div id="refContent" style="color:var(--sub);text-align:center;padding:16px;font-size:13px;">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Rules -->
+  <div class="card p4 fu d4">
+    <div class="stitle">📜 ဂိမ်းစည်းမျဉ်းများ</div>
+    <div class="rule-grid">
+      <div class="ritem">
+        <div class="rico">🎟️</div>
+        <div class="rlbl">ပွဲဝင်ကြေး</div>
+        <div class="rval">500 MMK</div>
+      </div>
+      <div class="ritem" style="border-color:rgba(0,204,136,.16);background:rgba(0,204,136,.03);">
+        <div class="rico">🏆</div>
+        <div class="rlbl">အနိုင်ရမည်</div>
+        <div class="rval" style="color:var(--grn);">800 MMK</div>
+      </div>
+      <div class="ritem" style="border-color:rgba(61,158,255,.16);background:rgba(61,158,255,.03);">
+        <div class="rico">🤝</div>
+        <div class="rlbl">သရေကျလျှင်</div>
+        <div class="rval" style="color:var(--blu);">250 MMK ပြန်ရ</div>
+      </div>
+      <div class="ritem" style="border-color:rgba(245,184,0,.16);background:rgba(245,184,0,.03);">
+        <div class="rico">⏱️</div>
+        <div class="rlbl">တစ်လှည့်ချိန်</div>
+        <div class="rval" style="color:var(--ylw);">3 မိနစ်</div>
+      </div>
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:11px;
+      padding:11px;display:flex;align-items:center;gap:9px;">
+      <span style="font-size:1.3rem;">⚔️</span>
+      <span style="font-size:13px;color:var(--sub);">8×8 ကွက်တွင် <b style="color:var(--tx);">တူညီသောသကြားလုံး 3 ခု</b> တန်းနှိပ်ပြီး မှတ်ရောက်သူ အနိုင်ရသည်</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const tg=window.Telegram?.WebApp;
+if(tg){tg.expand();tg.ready();}
+
+const API='https://candycrushbackend.onrender.com';
+const BOT='candycrush_bot';
+let user=null,toastT,refLoaded=false;
+
+/* ── toast ── */
+function toast(msg,ok=true,dur=3200){
+  const el=document.getElementById('toast'),ti=document.getElementById('ti');
+  ti.textContent=(ok?'✅ ':'⚠️ ')+msg;
+  ti.className='ti '+(ok?'tok':'terr');
+  el.classList.add('show');clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+/* ── panel ── */
+function togglePanel(id){
+  ['dep','wd','rdm'].forEach(p=>{
+    const e=document.getElementById(p);
+    if(p===id)e.classList.toggle('open');else e.classList.remove('open');
+  });
+  setTimeout(()=>document.getElementById(id).scrollIntoView({behavior:'smooth',block:'nearest'}),130);
+  if(id==='dep') loadPaymentInfo();
+}
+
+function copyTxt(t){
+  navigator.clipboard?.writeText(t);
+  if(tg?.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
+  toast('ကူးယူပြီးပါပြီ',true,1800);
+}
+
+function sendRef(){
+  const l=document.getElementById('refL').value;
+  if(!l||l==='Loading...')return;
+  const u=`https://t.me/share/url?url=${encodeURIComponent(l)}&text=${encodeURIComponent('ဂိမ်းဆော့ရတာ ဝါသနာပါလား? ပိုက်ဆံရော ရချင်လား?\nအားတဲ့အချိန်မှာ ဖုန်းလေးနှိပ်ရုံနဲ့ ပိုက်ဆံတွေ ရလာမယ့် 🍭 Candy Crush!\n🚫 ရင်းနှီးမြှုပ်နှံရန် မလို\n✅ ကစားသူ အချင်းချင်း ပြိုင်ရုံပဲ\n🚀 မြန်ဆန်တဲ့ ငွေထုတ်စနစ်\nလက်မနှေးဘဲ ဒီမှာ Join ပါ 👇')}`;
+  if(tg?.openTelegramLink)tg.openTelegramLink(u);
+  else window.open(u,'_blank');
+}
+
+/* ── referral tabs ── */
+function rtab(t){
+  ['link','list'].forEach(x=>{
+    const b=document.getElementById('rt-'+x);
+    b.classList.toggle('on',x===t);
+  });
+  document.getElementById('refList').style.display=t==='list'?'block':'none';
+  if(t==='list'&&!refLoaded)loadRefList();
+}
+
+async function loadRefList(){
+  if(!user?.telegramId)return;
+  refLoaded=true;
+  const el=document.getElementById('refContent');
+  el.innerHTML='<div class="ring" style="margin:0 auto;"></div>';
+  try{
+    const r=await fetch(`${API}/api/referrals/${user.telegramId}`);
+    if(!r.ok) throw new Error('Server error '+r.status);
+    const d=await r.json();
+    document.getElementById('refCnt').textContent=d.total||0;
+    if(!d.referrals?.length){
+      el.innerHTML='<div style="color:var(--sub);text-align:center;padding:20px;font-size:13px;">ဖိတ်ထားသူ မရှိသေးပါ</div>';return;
+    }
+    el.innerHTML=d.referrals.map(r=>`
+      <div class="ref-item">
+        <div>
+          <div style="font-weight:700;font-size:13px;">${esc(r.name)}${r.username?' <span style="color:var(--sub);font-size:12px;">@'+esc(r.username)+'</span>':''}</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:1px;">${new Date(r.joinedAt).toLocaleDateString()}</div>
+        </div>
+        <div style="font-weight:800;font-size:13px;color:var(--grn);">${(r.balance||0).toLocaleString()} MMK</div>
+      </div>`).join('');
+  }catch(e){
+    refLoaded=false; // allow retry
+    el.innerHTML='<div style="color:#f87171;text-align:center;padding:16px;font-size:13px;">⚠️ Load မဖြစ်ပါ — ထပ်ကြိုးစားပါ</div>';
+  }
+}
+
+function esc(s){return (s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+
+/* ── animate number ── */
+function animN(id,end,dur=750){
+  const el=document.getElementById(id);
+  const start=parseInt(el.textContent.replace(/,/g,''))||0;
+  if(start===end){el.textContent=end.toLocaleString();return;}
+  let t0=null;
+  const s=ts=>{if(!t0)t0=ts;const p=Math.min((ts-t0)/dur,1);
+    el.textContent=Math.floor(p*(end-start)+start).toLocaleString();
+    if(p<1)requestAnimationFrame(s);else el.textContent=end.toLocaleString();};
+  requestAnimationFrame(s);
+}
+
+function updateUI(){
+  if(!user)return;
+  document.getElementById('uname').textContent=user.firstName||user.username||'User';
+  animN('balNum',user.balance||0);
+  document.getElementById('sG').textContent=user.totalGames||0;
+  document.getElementById('sW').textContent=user.wins||0;
+  document.getElementById('sL').textContent=user.losses||0;
+  document.getElementById('refL').value=`https://t.me/${BOT}?start=${user.referralCode||''}`;
+}
+
+/* ── init with FIX for User123 bug ──
+   Strategy: always use initData if available (Telegram provides it).
+   On return from play.html, initData is still available from tg.initData.
+   Store telegramId in sessionStorage as fallback to fetch fresh data. */
+async function init(){
+  try{
+    const initData=tg?.initData||'';
+    const savedId=sessionStorage.getItem('uid');
+    let body;
+    if(initData){
+      body={initData};
+    }else if(savedId){
+      // Back from game page — fetch fresh data using saved ID
+      const r2=await fetch(`${API}/api/user/${savedId}`);
+      const d2=await r2.json();
+      if(d2.balance!==undefined){
+        user={telegramId:parseInt(savedId),firstName:d2.firstName,username:d2.username,...d2};
+        updateUI();hideLdr();return;
+      }
+      body={telegramId:parseInt(savedId)};
+    }else{
+      body={telegramId:12345};
+    }
+    const r=await fetch(`${API}/api/auth`,{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok)throw new Error(r.status);
+    user=await r.json();
+    if(user.telegramId)sessionStorage.setItem('uid',user.telegramId);
+    updateUI();hideLdr();
+    loadPaymentInfo();
+  }catch(e){
+    console.error('init:',e);
+    hideLdr();
+    toast('ဆာဗာ ချိတ်ဆက်မှု ပြဿနာ',false,5000);
+  }
+}
+
+function hideLdr(){
+  const l=document.getElementById('ldr');
+  l.style.opacity='0';
+  setTimeout(()=>{l.style.display='none';document.getElementById('app').style.display='block';},320);
+}
+
+async function refreshBal(){
+  if(!user?.telegramId)return;
+  const ico=document.getElementById('rico');
+  ico.style.animation='spin .7s linear infinite';
+  try{
+    const r=await fetch(`${API}/api/user/${user.telegramId}`);
+    const d=await r.json();
+    if(d.balance!==undefined){
+      Object.assign(user,d);
+      animN('balNum',d.balance);
+      document.getElementById('sG').textContent=d.totalGames||0;
+      document.getElementById('sW').textContent=d.wins||0;
+      document.getElementById('sL').textContent=d.losses||0;
+      toast('လက်ကျန်ငွေ အသစ်တင်ပြီ',true,2000);
+    }
+  }catch(e){toast('ချိတ်ဆက်မှု ပြဿနာ',false);}
+  setTimeout(()=>ico.style.animation='',800);
+}
+
+function setLd(p,on){
+  document.getElementById(p+'Tx').style.display=on?'none':'inline';
+  document.getElementById(p+'Sp').style.display=on?'inline-block':'none';
+}
+
+// Payment method state
+let depMethod = 'kpay';
+let wdMethod  = 'kpay';
+let _payInfo = null; // cached payment info
+
+async function loadPaymentInfo() {
+  if (!user?.telegramId) return;
+  try {
+    const r = await fetch(`${API}/api/payment-info/${user.telegramId}`);
+    if (!r.ok) return;
+    _payInfo = await r.json();
+    applyPaymentInfo();
+  } catch(e) {}
+}
+
+function applyPaymentInfo() {
+  if (!_payInfo) return;
+  const { kpayNumber, kpayName, hasWave } = _payInfo;
+
+  // Update KPay display
+  const kNumEl = document.getElementById('dep-kpay-number');
+  const kNameEl = document.getElementById('dep-kpay-name');
+  if (kNumEl) kNumEl.textContent = kpayNumber;
+  if (kNameEl) kNameEl.textContent = kpayName;
+
+  // Update copy buttons
+  const kCopyNum = document.getElementById('dep-kpay-copy-num');
+  const kCopyName = document.getElementById('dep-kpay-copy-name');
+  if (kCopyNum) kCopyNum.onclick = () => copyTxt(kpayNumber);
+  if (kCopyName) kCopyName.onclick = () => copyTxt(kpayName);
+
+  // Show/hide Wave tab based on agent config
+  const waveTab = document.getElementById('dep-tab-wave');
+  const waveInfo = document.getElementById('dep-wave-info');
+  if (!hasWave) {
+    if (waveTab) waveTab.style.display = 'none';
+    if (waveInfo) waveInfo.style.display = 'none';
+    if (depMethod === 'wave') {
+      depMethod = 'kpay';
+      document.getElementById('dep-kpay-info').style.display = '';
+      const kt = document.getElementById('dep-tab-kpay');
+      if (kt) kt.className = 'pay-tab active-kpay';
+    }
+  } else {
+    if (waveTab) waveTab.style.display = '';
+  }
+}
+
+function switchDepMethod(m) {
+  if (m === 'wave' && _payInfo && !_payInfo.hasWave) return;
+  depMethod = m;
+  document.getElementById('dep-kpay-info').style.display = m === 'kpay' ? '' : 'none';
+  document.getElementById('dep-wave-info').style.display = m === 'wave' ? '' : 'none';
+  document.getElementById('dep-tab-kpay').className = 'pay-tab' + (m === 'kpay' ? ' active-kpay' : '');
+  document.getElementById('dep-tab-wave').className = 'pay-tab' + (m === 'wave' ? ' active-wave' : '');
+  document.getElementById('dN').placeholder = m === 'wave' ? 'သင့် Wave Pay အမည်' : 'သင့် KPay အမည်';
+}
+
+function switchWdMethod(m) {
+  wdMethod = m;
+  document.getElementById('wd-tab-kpay').className = 'pay-tab' + (m === 'kpay' ? ' active-kpay' : '');
+  document.getElementById('wd-tab-wave').className = 'pay-tab' + (m === 'wave' ? ' active-wave' : '');
+  document.getElementById('wN').placeholder = m === 'wave' ? 'ငွေလက်ခံမည့် Wave Pay အမည်' : 'ငွေလက်ခံမည့် KPay အမည်';
+  document.getElementById('wP').placeholder = m === 'wave' ? 'Wave Pay ဖုန်းနံပါတ် (09xxxxxxx)' : 'KPay ဖုန်းနံပါတ် (09xxxxxxx)';
+}
+
+async function submitDep(){
+  const name=document.getElementById('dN').value.trim();
+  const txn=document.getElementById('dT').value.trim();
+  const amt=parseInt(document.getElementById('dA').value);
+  const methodLabel = depMethod === 'wave' ? 'Wave Pay' : 'KPay';
+  if(!name)return toast(`${methodLabel} အမည် ဖြည့်ပါ`,false);
+  if(!txn)return toast('Transaction ID ဖြည့်ပါ',false);
+  if(!amt||amt<500)return toast('အနည်းဆုံး 500 MMK ဖြည့်ပါ',false);
+  if(!user)return toast('Login ဝင်ပါ',false);
+  setLd('d',true);
+  try{
+    const r=await fetch(`${API}/api/deposit`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({telegramId:user.telegramId,kpayName:name,transactionId:txn,amount:amt,paymentMethod:depMethod})});
+    const res=await r.json();
+    if(res.success){
+      toast('တောင်းဆိုမှု အောင်မြင်! Admin စစ်ဆေးနေသည်',true,4000);
+      document.getElementById('dN').value='';document.getElementById('dT').value='';
+      document.getElementById('dA').value='';togglePanel('dep');
+    }else toast(res.error||'Error',false,4500);
+  }catch(e){toast('ဆာဗာ ချိတ်ဆက်မှု ပြဿနာ',false);}
+  setLd('d',false);
+}
+
+async function submitWd(){
+  const name=document.getElementById('wN').value.trim();
+  const num=document.getElementById('wP').value.trim();
+  const methodLabel = wdMethod === 'wave' ? 'Wave Pay' : 'KPay';
+  // FIX: strip commas before parsing — parseInt('3,000') = 3, Number('3000') = 3000
+  const rawAmt=document.getElementById('wA').value;
+  const amt=Number(rawAmt.replace(/,/g,''));
+  if(!name)return toast(`${methodLabel} အမည် ဖြည့်ပါ`,false);
+  if(!num)return toast(`${methodLabel} ဖုန်းနံပါတ် ဖြည့်ပါ`,false);
+  if(isNaN(amt)||amt<2500)return toast('အနည်းဆုံး 2,500 MMK ဖြည့်ပါ',false);
+  if(!user)return toast('Login ဝင်ပါ',false);
+  // Always re-fetch fresh balance before withdraw — avoid stale data
+  try{
+    const fr=await fetch(`${API}/api/user/${user.telegramId}`);
+    const fd=await fr.json();
+    // FIX: always store as Number to avoid String vs Number comparison bugs
+    if(fd.balance!==undefined){user.balance=Number(fd.balance);animN('balNum',user.balance);}
+  }catch(e){}
+  if(amt>Number(user.balance)){
+    return toast(`လက်ကျန်ငွေ မလုံလောက်ပါ (ကျန်: ${Number(user.balance).toLocaleString()} MMK)`,false,4500);
+  }
+  setLd('w',true);
+  try{
+    const r=await fetch(`${API}/api/withdraw`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({telegramId:user.telegramId,kpayName:name,kpayNumber:num,amount:amt,paymentMethod:wdMethod})});
+    const res=await r.json();
+    if(res.success){
+      user.balance=Number(res.newBalance);animN('balNum',user.balance);
+      toast('တောင်းဆိုမှု အောင်မြင်! Admin စစ်ဆေးနေသည်',true,4000);
+      document.getElementById('wN').value='';document.getElementById('wP').value='';
+      document.getElementById('wA').value='';togglePanel('wd');
+    }else toast(res.error||'Error',false,4500);
+  }catch(e){toast('ဆာဗာ ချိတ်ဆက်မှု ပြဿနာ',false);}
+  setLd('w',false);
+}
+
+// Silent auto-refresh
+setInterval(async()=>{
+  if(!user?.telegramId||document.visibilityState!=='visible')return;
+  try{
+    const r=await fetch(`${API}/api/user/${user.telegramId}`);
+    const d=await r.json();
+    // FIX: always cast to Number
+    if(d.balance!==undefined&&Number(d.balance)!==Number(user.balance)){
+      animN('balNum',Number(d.balance));user.balance=Number(d.balance);
+    }
+  }catch(e){}
+},60000);
+
+
+/* ── Redeem Code ── */
+async function submitRedeem(){
+  const code=document.getElementById('rdmCode').value.trim().toUpperCase();
+  if(!code)return toast('Code ရိုက်ထည့်ပါ',false);
+  if(!user)return toast('Login ဝင်ပါ',false);
+  document.getElementById('rdmTx').style.display='none';
+  document.getElementById('rdmSp').style.display='inline-block';
+  try{
+    const r=await fetch(`${API}/api/redeem`,{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({telegramId:user.telegramId,code})});
+    const res=await r.json();
+    if(res.success){
+      user.balance=Number(res.newBalance);
+      animN('balNum',user.balance);
+      toast(`🎉 ${res.amount.toLocaleString()} MMK ရရှိပြီ!`,true,5000);
+      document.getElementById('rdmCode').value='';
+      togglePanel('rdm');
+    }else{
+      toast(res.error||'Code မမှန်ပါ',false,4500);
+    }
+  }catch(e){toast('ဆာဗာ ချိတ်ဆက်မှု ပြဿနာ',false);}
+  document.getElementById('rdmTx').style.display='inline';
+  document.getElementById('rdmSp').style.display='none';
+}
+
+window.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

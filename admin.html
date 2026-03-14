@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Candy Crush — Admin</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05050c;--sur:rgba(255,255,255,.04);--bdr:rgba(255,255,255,.072);
+  --acc:#5c35f5;--pk:#f54565;--grn:#00cc88;--blu:#3d9eff;--ylw:#f5b800;
+  --tx:#eaeaf2;--sub:rgba(255,255,255,.34);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);min-height:100vh;color:var(--tx);overflow-x:hidden;}
+
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+.orb1{position:absolute;width:500px;height:500px;border-radius:50%;top:-100px;left:-80px;
+  background:radial-gradient(circle,rgba(92,53,245,.12) 0%,transparent 70%);}
+.orb2{position:absolute;width:400px;height:400px;border-radius:50%;bottom:-80px;right:-60px;
+  background:radial-gradient(circle,rgba(245,69,101,.09) 0%,transparent 70%);}
+.gbg{position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+  background-size:38px 38px;}
+
+/* Auth screen */
+#authSc{position:fixed;inset:0;background:var(--bg);z-index:500;
+  display:flex;align-items:center;justify-content:center;padding:20px;}
+.auth-card{background:var(--sur);border:1px solid var(--bdr);border-radius:20px;
+  padding:28px 22px;max-width:340px;width:100%;text-align:center;backdrop-filter:blur(20px);}
+.auth-logo{font-size:2rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#f472b6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;}
+.auth-sub{font-size:13px;color:var(--sub);margin-bottom:20px;line-height:1.6;}
+
+/* Loader */
+#ldr{position:fixed;inset:0;background:var(--bg);z-index:600;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+.ldr-t{font-size:1.6rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#f472b6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ring{width:32px;height:32px;border:3px solid rgba(255,255,255,.1);border-top-color:#7c5af5;
+  border-radius:50%;animation:spin .85s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#app{position:relative;z-index:1;max-width:440px;margin:0 auto;padding:12px 12px 40px;display:none;}
+
+.card{background:var(--sur);border:1px solid var(--bdr);border-radius:17px;backdrop-filter:blur(18px);}
+.p4{padding:15px;}
+
+/* Tabs */
+.tabs{display:flex;gap:3px;background:rgba(0,0,0,.25);border-radius:13px;padding:3px;
+  margin-bottom:13px;overflow-x:auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex:1;min-width:52px;padding:8px 4px;border-radius:10px;border:none;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-weight:700;font-size:11px;color:var(--sub);
+  background:transparent;transition:.18s;text-align:center;white-space:nowrap;}
+.tab.on{background:rgba(92,53,245,.5);color:#fff;}
+.tab:not(.on):hover{color:rgba(255,255,255,.65);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-family:'Outfit',sans-serif;font-weight:700;border:none;cursor:pointer;
+  transition:all .14s;border-radius:10px;padding:10px 14px;color:#fff;font-size:13px;}
+.btn:active{transform:scale(.95);}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px;}
+.btn-full{width:100%;}
+.btn-pur{background:linear-gradient(135deg,#5c35f5,#7c3aed);}
+.btn-grn{background:linear-gradient(135deg,#059669,#10b981);}
+.btn-red{background:linear-gradient(135deg,#be123c,#ef4444);}
+.btn-blu{background:linear-gradient(135deg,#1d4ed8,#3b82f6);}
+.btn-ylw{background:linear-gradient(135deg,#b45309,#f59e0b);}
+.btn-gh{background:rgba(255,255,255,.08);color:rgba(255,255,255,.65);}
+
+/* Inputs */
+.inp{width:100%;padding:11px 13px;background:rgba(0,0,0,.22);border:1px solid var(--bdr);
+  border-radius:10px;color:var(--tx);font-family:'Outfit',sans-serif;font-size:13px;
+  outline:none;transition:.22s;}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(92,53,245,.15);}
+.inp::placeholder{color:rgba(255,255,255,.18);}
+textarea.inp{resize:vertical;min-height:75px;}
+.fcol{display:flex;flex-direction:column;gap:8px;}
+
+/* Stat */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:13px;padding:13px;text-align:center;}
+.sn{font-size:1.55rem;font-weight:900;line-height:1;}
+.sl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-top:3px;}
+
+/* Request card */
+.req{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:12px;
+  padding:13px;margin-bottom:8px;}
+.req-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:9px;}
+.rlbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.rval{font-size:13px;font-weight:700;}
+.rack{display:flex;gap:6px;}
+
+/* User card */
+.ucard{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:12px;
+  padding:12px;margin-bottom:6px;cursor:pointer;transition:.18s;}
+.ucard:hover{background:rgba(255,255,255,.058);}
+.ucard.banned{border-color:rgba(245,69,101,.28);background:rgba(245,69,101,.04);}
+
+/* Badge */
+.bdg{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;}
+.bg-grn{background:rgba(0,204,136,.13);color:var(--grn);border:1px solid rgba(0,204,136,.28);}
+.bg-red{background:rgba(245,69,101,.13);color:#fca5a5;border:1px solid rgba(245,69,101,.28);}
+.bg-ylw{background:rgba(245,184,0,.13);color:var(--ylw);border:1px solid rgba(245,184,0,.28);}
+.bg-blu{background:rgba(61,158,255,.13);color:#93c5fd;border:1px solid rgba(61,158,255,.28);}
+
+/* Toggle */
+.tog{position:relative;display:inline-block;width:42px;height:23px;}
+.tog input{opacity:0;width:0;height:0;}
+.sl2{position:absolute;cursor:pointer;inset:0;background:rgba(255,255,255,.14);border-radius:23px;transition:.28s;}
+.sl2:before{content:'';position:absolute;height:17px;width:17px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.28s;}
+input:checked+.sl2{background:var(--acc);}
+input:checked+.sl2:before{transform:translateX(19px);}
+
+/* Section title */
+.stitle{font-size:.93rem;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:7px;}
+
+/* Toast */
+#toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-70px);
+  z-index:9999;transition:all .38s cubic-bezier(.68,-.55,.265,1.55);opacity:0;pointer-events:none;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.ti{padding:10px 20px;border-radius:100px;font-size:13px;font-weight:700;
+  backdrop-filter:blur(20px);display:flex;align-items:center;gap:7px;white-space:nowrap;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);}
+.tok{background:rgba(0,204,136,.88);border:1px solid #34d399;color:#fff;}
+.terr{background:rgba(239,68,68,.88);border:1px solid #f87171;color:#fff;}
+
+.spn{width:14px;height:14px;border:2px solid rgba(255,255,255,.18);border-top-color:#fff;
+  border-radius:50%;animation:spin .8s linear infinite;}
+
+/* Filter row */
+.frow{display:flex;gap:5px;margin-bottom:11px;flex-wrap:wrap;}
+
+/* Detail panel */
+.det-panel{background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:15px;
+  margin-top:11px;display:none;}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px;}
+.det-item{background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:10px;padding:10px;}
+
+/* Redeem code card */
+.ccode{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);
+  border-radius:12px;padding:12px;margin-bottom:8px;}
+.ccode.inactive{opacity:.45;filter:grayscale(.5);}
+.code-badge{font-family:monospace;font-size:1.05rem;font-weight:800;letter-spacing:.1em;
+  color:#fde68a;background:rgba(245,158,11,.14);padding:3px 10px;border-radius:7px;
+  display:inline-block;margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div class="bg"><div class="orb1"></div><div class="orb2"></div><div class="gbg"></div></div>
+<div id="toast"><div class="ti" id="ti"></div></div>
+
+<!-- Auth screen -->
+<div id="authSc">
+  <div class="auth-card">
+    <div class="auth-logo">🛡️ Candy Crush</div>
+    <div style="font-size:1.1rem;font-weight:800;margin-bottom:5px;">Admin Panel</div>
+    <div class="auth-sub">Admin ဝင်ရောက်ရန် Telegram Bot မှ /admin ရိုက်ပါ<br>သို့မဟုတ် သင့် Telegram ID ထည့်ပါ</div>
+    <div class="fcol">
+      <input class="inp" id="authId" type="number" placeholder="Telegram ID ထည့်ပါ">
+      <button class="btn btn-pur btn-full" onclick="doAuth()">
+        <span id="authTx">🔐 ဝင်ရောက်မည်</span><div class="spn" id="authSp" style="display:none;"></div>
+      </button>
+    </div>
+    <div id="authErr" style="color:#f87171;font-size:13px;margin-top:10px;display:none;"></div>
+  </div>
+</div>
+
+<!-- Page loader -->
+<div id="ldr" style="display:none;">
+  <div class="ldr-t">🛡️ Admin</div><div class="ring"></div>
+</div>
+
+<div id="app">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;">
+    <div>
+      <div style="font-size:1.2rem;font-weight:900;background:linear-gradient(135deg,#a78bfa,#f472b6);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;">🛡️ Admin Panel</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:2px;">Candy Crush Management</div>
+    </div>
+    <div style="text-align:right;font-size:11px;color:var(--sub);line-height:1.9;">
+      🎮 <span id="hAG">0</span> ဂိမ်း &nbsp; ⌛ <span id="hQ">0</span> စောင့်
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab on" onclick="showTab('dash')">📊 Dashboard</button>
+    <button class="tab" onclick="showTab('dep')">💰 ငွေသွင်း</button>
+    <button class="tab" onclick="showTab('wd')">💸 ငွေထုတ်</button>
+    <button class="tab" onclick="showTab('users')">👥 Users</button>
+    <button class="tab" onclick="showTab('high')">💎 High Bal</button>
+    <button class="tab" onclick="showTab('invited')">🎯 Agent Users</button>
+    <button class="tab" onclick="showTab('history')">🎮 History</button>
+    <button class="tab" onclick="showTab('msg')">📢 Message</button>
+    <button class="tab" onclick="showTab('codes')">🎟️ Codes</button>
+    <button class="tab" onclick="showTab('agents')">🎯 Agents</button>
+  </div>
+
+  <!-- ─── DASHBOARD ─── -->
+  <div id="tab-dash">
+    <div class="stat-grid">
+      <div class="stat"><div class="sn" style="color:#a78bfa;" id="dU">—</div><div class="sl">Users</div></div>
+      <div class="stat"><div class="sn" style="color:var(--grn);" id="dG">—</div><div class="sl">ပြီးစီးသောဂိမ်း</div></div>
+      <div class="stat" style="border-color:rgba(245,184,0,.15);"><div class="sn" style="color:var(--ylw);" id="dPD">—</div><div class="sl">ငွေသွင်း Pending</div></div>
+      <div class="stat" style="border-color:rgba(245,69,101,.15);"><div class="sn" style="color:var(--pk);" id="dPW">—</div><div class="sl">ငွေထုတ် Pending</div></div>
+    </div>
+    <div class="card p4" style="margin-bottom:11px;">
+      <div class="stitle">💹 ငွေကြေး အနှစ်ချုပ်</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:9px;">
+        <span style="color:var(--sub);">စုစုပေါင်း ဝင်ငွေ</span>
+        <span style="font-weight:800;color:var(--grn);" id="dTD">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:9px;">
+        <span style="color:var(--sub);">စုစုပေါင်း ထုတ်ငွေ</span>
+        <span style="font-weight:800;color:var(--pk);" id="dTW">—</span>
+      </div>
+      <div style="height:1px;background:var(--bdr);margin:9px 0;"></div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span style="color:var(--sub);">အမြတ်ငွေ</span>
+        <span style="font-weight:900;color:#a78bfa;" id="dPr">—</span>
+      </div>
+    </div>
+    <div class="card p4" style="margin-bottom:11px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-weight:700;font-size:14px;">🔧 Maintenance Mode</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px;">ဖွင့်ထားလျှင် Users ဝင်၍မရပါ</div>
+        </div>
+        <label class="tog"><input type="checkbox" id="maintTog" onchange="toggleMaint(this.checked)"><span class="sl2"></span></label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div>
+          <div style="font-weight:700;font-size:14px;">🤖 All Bot Mode</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px;">ဖွင့်ထားလျှင် အားလုံး Bot နှင့်တွေ့မည်</div>
+        </div>
+        <label class="tog"><input type="checkbox" id="allBotTog" onchange="toggleAllBot(this.checked)"><span class="sl2"></span></label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-weight:700;font-size:14px;">📢 Fake Notifications</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px;">ဖွင့်ထားမှ စာတိုများ ပို့မည်</div>
+        </div>
+        <label class="tog"><input type="checkbox" id="fakeNotifTog" onchange="toggleFakeNotif(this.checked)"><span class="sl2"></span></label>
+      </div>
+      <!-- Fake Notif Interval -->
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bdr);">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;">⏱ Fake Noti တစ်ကြိမ် ပို့ချိန် (မိနစ်)</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input class="inp" id="fakeIntervalInp" type="number" min="1" max="60" placeholder="မိနစ် (Default: 3)"
+            style="flex:1;padding:9px 12px;font-size:13px;">
+          <button class="btn btn-pur" style="padding:9px 14px;white-space:nowrap;width:auto;" onclick="saveFakeInterval()">
+            <span id="fiTx">💾 သတ်မှတ်</span><div class="spn" id="fiSp" style="display:none;"></div>
+          </button>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:5px;">လက်ရှိ: <b id="curInterval" style="color:#a78bfa;">— မိနစ်</b></div>
+      </div>
+    </div>
+    <button class="btn btn-pur btn-full" onclick="loadDash()">🔄 Refresh</button>
+  </div>
+
+  <!-- ─── DEPOSITS ─── -->
+  <div id="tab-dep" style="display:none;">
+    <div style="background:rgba(61,158,255,.07);border:1px solid rgba(61,158,255,.2);border-radius:10px;padding:10px 13px;margin-bottom:11px;font-size:12px;color:#93c5fd;">
+      ℹ️ ဤနေရာတွင် Agent ၏ User များ၏ ငွေဖြည့်မှုများ <b>မပါဝင်ပါ</b>။ Agent Users ကို <b>Agent Users</b> Tab မှ ကိုင်တွယ်ပါ။
+    </div>
+    <div class="frow">
+      <button class="btn btn-ylw btn-sm" id="df-pending" onclick="loadDep('pending')">⌛ Pending</button>
+      <button class="btn btn-gh btn-sm" id="df-confirmed" onclick="loadDep('confirmed')">✅ Confirmed</button>
+      <button class="btn btn-gh btn-sm" id="df-rejected" onclick="loadDep('rejected')">❌ Rejected</button>
+    </div>
+    <div id="depList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+  </div>
+
+  <!-- ─── WITHDRAWALS ─── -->
+  <div id="tab-wd" style="display:none;">
+    <div class="frow">
+      <button class="btn btn-ylw btn-sm" id="wf-pending" onclick="loadWd('pending')">⌛ Pending</button>
+      <button class="btn btn-gh btn-sm" id="wf-confirmed" onclick="loadWd('confirmed')">✅ Confirmed</button>
+      <button class="btn btn-gh btn-sm" id="wf-rejected" onclick="loadWd('rejected')">❌ Rejected</button>
+    </div>
+    <div id="wdList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+  </div>
+
+  <!-- ─── USERS ─── -->
+  <div id="tab-users" style="display:none;">
+    <div style="display:flex;gap:8px;margin-bottom:11px;">
+      <input class="inp" id="usrQ" placeholder="ID / နာမည် ရှာမည်" oninput="debounceSrch()">
+      <button class="btn btn-pur" style="padding:10px 14px;white-space:nowrap;" onclick="searchUsers()">ရှာ</button>
+    </div>
+    <div id="userList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+    <div id="userPag" style="display:flex;justify-content:center;gap:7px;margin-top:10px;flex-wrap:wrap;"></div>
+    <div class="det-panel" id="userDet"></div>
+  </div>
+
+  <!-- ─── HIGH BALANCERS ─── -->
+  <div id="tab-high" style="display:none;">
+    <div style="margin-bottom:11px;">
+      <button class="btn btn-pur btn-full" onclick="loadHighBalancers()">🔄 Refresh</button>
+    </div>
+    <div id="highList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+  </div>
+
+  <!-- ─── HISTORY ─── -->
+  <div id="tab-history" style="display:none;">
+    <div style="display:flex;gap:8px;margin-bottom:11px;">
+      <input class="inp" id="histQ" placeholder="Player ID ဖြင့်ရှာ" oninput="debouncHist()">
+      <button class="btn btn-pur" style="padding:10px 14px;white-space:nowrap;" onclick="loadHistory(1)">ရှာ</button>
+    </div>
+    <div id="histList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+    <div id="histPag" style="display:flex;justify-content:center;gap:7px;margin-top:10px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- ─── MESSAGE ─── -->
+  <div id="tab-msg" style="display:none;">
+    <div class="card p4" style="margin-bottom:11px;">
+      <div class="stitle">✉️ တစ်ဦးချင်း ပို့မည်</div>
+      <div class="fcol">
+        <input class="inp" id="msgUid" placeholder="Telegram ID">
+        <textarea class="inp" id="msgTxt" placeholder="ပို့မည့် စာ (HTML ပါ support လုပ်သည်)"></textarea>
+        <button class="btn btn-blu btn-full" onclick="sendMsg()">
+          <span id="msgTx">📨 ပို့မည်</span><div class="spn" id="msgSp" style="display:none;"></div>
+        </button>
+      </div>
+    </div>
+    <div class="card p4">
+      <div class="stitle">📢 Broadcast (Users အားလုံး)</div>
+      <div class="fcol">
+        <textarea class="inp" id="bcTxt" placeholder="Broadcast စာ (HTML ပါ support လုပ်သည်)"></textarea>
+        <input class="inp" id="bcBtnT" placeholder="ခလုတ်စာ (Optional)">
+        <input class="inp" id="bcBtnU" placeholder="ခလုတ် URL (Optional)">
+        <button class="btn btn-pur btn-full" onclick="sendBC()">
+          <span id="bcTx">📢 Broadcast</span><div class="spn" id="bcSp" style="display:none;"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ─── REDEEM CODES ─── -->
+  <div id="tab-codes" style="display:none;">
+    <div class="card p4" style="margin-bottom:11px;">
+      <div class="stitle">🎟️ Code အသစ် ဖန်တီးရန်</div>
+      <div class="fcol">
+        <input class="inp" id="rcCode" placeholder="Code နာမည် (ဥပမာ: PROMO100)"
+          oninput="this.value=this.value.toUpperCase()" style="letter-spacing:.1em;font-weight:700;">
+        <input class="inp" id="rcAmount" type="number" placeholder="ပေးမည့် ပမာဏ (MMK)" min="1">
+        <input class="inp" id="rcMax" type="number" placeholder="အများဆုံး သုံးနိုင်သောလူဦးရေ (0 = ကန့်သတ်မဲ့)" min="0">
+        <button class="btn btn-ylw btn-full" onclick="createCode()">
+          <span id="rcTx">✅ Code ဖန်တီးမည်</span><div class="spn" id="rcSp" style="display:none;"></div>
+        </button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;">
+      <div style="font-weight:800;font-size:.93rem;">📋 Codes အားလုံး</div>
+      <button class="btn btn-gh btn-sm" onclick="loadCodes()">🔄 Refresh</button>
+    </div>
+    <div id="codeList"><div style="text-align:center;padding:24px;color:var(--sub);">Loading...</div></div>
+  </div>
+
+  <!-- ─── INVITED FROM AGENT ─── -->
+  <div id="tab-invited" style="display:none;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;">
+      <div style="font-weight:800;font-size:.93rem;">🎯 Agent မှ ဖိတ်ထားသူများ</div>
+      <button class="btn btn-gh btn-sm" onclick="loadInvited()">🔄 Refresh</button>
+    </div>
+    <div id="invitedList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+    <div class="det-panel" id="invitedDet"></div>
+  </div>
+
+  <!-- ─── AGENTS ─── -->
+  <div id="tab-agents" style="display:none;">
+    <div style="display:flex;gap:8px;margin-bottom:11px;">
+      <input class="inp" id="agentQ" placeholder="ID / နာမည် ရှာမည်" oninput="debounceAgent()">
+      <button class="btn btn-pur" style="padding:10px 14px;white-space:nowrap;" onclick="loadAgents(1)">ရှာ</button>
+    </div>
+    <div id="agentList"><div style="text-align:center;padding:28px;color:var(--sub);">Loading...</div></div>
+    <div id="agentPag" style="display:flex;justify-content:center;gap:7px;margin-top:10px;flex-wrap:wrap;"></div>
+    <div class="det-panel" id="agentDet"></div>
+  </div>
+</div><!-- /app -->
+
+<script>
+const tg=window.Telegram?.WebApp;
+if(tg){tg.expand();tg.ready();}
+
+const API='https://candycrushbackend.onrender.com';
+const WIN_PRIZE=800;
+let adminId=null,toastT,usrPage=1,srchDeb;
+
+/* ── toast ── */
+function toast(msg,ok=true,dur=3400){
+  const el=document.getElementById('toast'),ti=document.getElementById('ti');
+  ti.textContent=(ok?'✅ ':'⚠️ ')+msg;ti.className='ti '+(ok?'tok':'terr');
+  el.classList.add('show');clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+function hdrs(){return{'Content-Type':'application/json','x-admin-id':adminId};}
+async function api(path,opts={}){
+  const r=await fetch(`${API}${path}`,{headers:hdrs(),...opts});
+  if(!r.ok){const t=await r.text();throw new Error(t);}
+  return r.json();
+}
+
+/* ── Auth via Telegram ID verified server-side ── */
+async function doAuth(){
+  const idVal=document.getElementById('authId').value.trim();
+  if(!idVal)return showAuthErr('Telegram ID ထည့်ပါ');
+  const tid=parseInt(idVal);
+  if(isNaN(tid))return showAuthErr('ဂဏန်းသာ ထည့်ပါ');
+
+  document.getElementById('authTx').style.display='none';
+  document.getElementById('authSp').style.display='inline-block';
+  document.getElementById('authErr').style.display='none';
+
+  try{
+    const r=await fetch(`${API}/api/admin/verify`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({telegramId:tid})});
+    const d=await r.json();
+    if(!r.ok||!d.ok) return showAuthErr(d.error||'Admin မဟုတ်ပါ');
+    adminId=d.adminId;
+    sessionStorage.setItem('adminId',adminId);
+    document.getElementById('authSc').style.display='none';
+    document.getElementById('ldr').style.display='flex';
+    setTimeout(()=>{
+      document.getElementById('ldr').style.display='none';
+      document.getElementById('app').style.display='block';
+      loadDash();
+    },600);
+  }catch(e){showAuthErr('ဆာဗာ ချိတ်ဆက်မှု ပြဿနာ');}
+
+  document.getElementById('authTx').style.display='inline';
+  document.getElementById('authSp').style.display='none';
+}
+
+function showAuthErr(msg){
+  const e=document.getElementById('authErr');
+  e.textContent='⚠️ '+msg;e.style.display='block';
+  document.getElementById('authTx').style.display='inline';
+  document.getElementById('authSp').style.display='none';
+}
+
+// Check Telegram WebApp user if admin
+async function tryAutoAuth(){
+  const tgUser=tg?.initDataUnsafe?.user;
+  if(tgUser?.id){
+    document.getElementById('authId').value=tgUser.id;
+    // Auto-attempt if Telegram user
+    const saved=sessionStorage.getItem('adminId');
+    if(saved){
+      adminId=parseInt(saved);
+      document.getElementById('authSc').style.display='none';
+      document.getElementById('app').style.display='block';
+      loadDash();
+      return;
+    }
+  }
+  // Show auth screen
+  document.getElementById('authSc').style.display='flex';
+}
+
+/* ── Tabs ── */
+const TABS=['dash','dep','wd','users','high','invited','history','msg','codes','agents'];
+function showTab(name){
+  TABS.forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'block':'none';
+  });
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',TABS[i]===name));
+  if(name==='dep')loadDep('pending');
+  if(name==='wd')loadWd('pending');
+  if(name==='users')loadUsers(1);
+  if(name==='high')loadHighBalancers();
+  if(name==='invited')loadInvited();
+  if(name==='history')loadHistory(1);
+  if(name==='codes')loadCodes();
+  if(name==='agents')loadAgents(1);
+}
+
+/* ── Dashboard ── */
+async function loadDash(){
+  try{
+    const d=await api('/api/admin/stats');
+    document.getElementById('dU').textContent=(d.totalUsers||0).toLocaleString();
+    document.getElementById('dG').textContent=(d.totalGames||0).toLocaleString();
+    document.getElementById('dPD').textContent=d.pendingDeposits||0;
+    document.getElementById('dPW').textContent=d.pendingWithdrawals||0;
+    document.getElementById('dTD').textContent=(d.totalDeposited||0).toLocaleString()+' ကျပ်';
+    document.getElementById('dTW').textContent=(d.totalWithdrawn||0).toLocaleString()+' ကျပ်';
+    document.getElementById('dPr').textContent=((d.totalDeposited||0)-(d.totalWithdrawn||0)).toLocaleString()+' ကျပ်';
+    document.getElementById('hAG').textContent=d.activeGames||0;
+    document.getElementById('hQ').textContent=d.queueLength||0;
+    const s=await api('/api/admin/settings');
+    document.getElementById('maintTog').checked=!!s.maintenance;
+    document.getElementById('allBotTog').checked=!!s.allBotMode;
+    document.getElementById('fakeNotifTog').checked=!!s.fakeNotifications;
+    const iv=s.fakeNotifInterval||3;
+    document.getElementById('fakeIntervalInp').value=iv;
+    document.getElementById('curInterval').textContent=iv+' မိနစ်';
+  }catch(e){toast('Stats load မဖြစ်ပါ: '+e.message,false);}
+}
+
+async function toggleMaint(on){
+  try{
+    await api('/api/admin/maintenance',{method:'POST',body:JSON.stringify({enabled:on})});
+    toast(on?'🔧 Maintenance ON':'✅ Maintenance OFF',true);
+  }catch(e){toast('Error',false);}
+}
+
+async function toggleAllBot(on){
+  try{
+    await api('/api/admin/allbotmode',{method:'POST',body:JSON.stringify({enabled:on})});
+    toast(on?'🤖 All Bot Mode ON':'👥 All Bot Mode OFF',true);
+  }catch(e){toast('Error',false);}
+}
+
+async function toggleFakeNotif(on){
+  try{
+    await api('/api/admin/fakenotifications',{method:'POST',body:JSON.stringify({enabled:on})});
+    toast(on?'📢 Fake Notifications ON':'📢 Fake Notifications OFF',true);
+  }catch(e){toast('Error',false);}
+}
+
+async function saveFakeInterval(){
+  const val=parseInt(document.getElementById('fakeIntervalInp').value)||3;
+  if(val<1||val>60){toast('1–60 မိနစ်ကြား ဖြည့်ပါ',false);return;}
+  document.getElementById('fiTx').style.display='none';
+  document.getElementById('fiSp').style.display='inline-block';
+  try{
+    await api('/api/admin/fakenotifinterval',{method:'POST',body:JSON.stringify({interval:val})});
+    document.getElementById('curInterval').textContent=val+' မိနစ်';
+    toast('✅ Interval '+val+' မိနစ် သတ်မှတ်ပြီ',true);
+  }catch(e){toast('Error: '+e.message,false);}
+  document.getElementById('fiTx').style.display='inline';
+  document.getElementById('fiSp').style.display='none';
+}
+
+/* ── Deposits ── */
+let depFilter='pending';
+async function loadDep(s){
+  depFilter=s||depFilter;
+  ['pending','confirmed','rejected'].forEach(f=>{
+    const b=document.getElementById('df-'+f);
+    b.className='btn btn-sm '+(f===depFilter?'btn-ylw':'btn-gh');
+  });
+  const el=document.getElementById('depList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api('/api/admin/deposits?status='+depFilter);
+    if(!data.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">မရှိပါ</div>';return;}
+    el.innerHTML=data.map(d=>`
+      <div class="req">
+        <div class="req-row">
+          <div>
+            <div class="rlbl">User</div>
+            <div class="rval">${esc(d.userName)}</div>
+            <div style="font-size:11px;color:var(--sub);">ID: ${d.userId}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rlbl">ပမာဏ</div>
+            <div class="rval" style="color:var(--grn);">${d.amount.toLocaleString()} ကျပ်</div>
+            <div class="bdg ${d.status==='confirmed'?'bg-grn':d.status==='rejected'?'bg-red':'bg-ylw'}" style="margin-top:4px;">${d.status}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">
+          <div><div class="rlbl">KPay အမည်</div><div style="font-size:12px;">${esc(d.kpayName||'-')}</div></div>
+          <div><div class="rlbl">Transaction ID</div><div style="font-size:11px;color:#a78bfa;font-family:monospace;">${esc(d.transactionId)}</div></div>
+        </div>
+        <div style="font-size:10px;color:rgba(255,255,255,.2);margin-bottom:8px;">${new Date(d.createdAt).toLocaleString()}</div>
+        ${d.status==='pending'?`<div class="rack">
+          <button class="btn btn-grn btn-sm btn-full" onclick="cfmDep('${d._id}')">✅ Confirm</button>
+          <button class="btn btn-red btn-sm btn-full" onclick="rejDep('${d._id}')">❌ Reject</button>
+        </div>`:''}
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error: '+esc(e.message)+'</div>';}
+}
+
+async function cfmDep(id){
+  const btn=event.target;
+  if(btn.disabled)return;
+  if(!confirm('Confirm ပြုလုပ်မည်?'))return;
+  btn.disabled=true;btn.textContent='⏳...';
+  try{await api(`/api/admin/deposits/${id}/confirm`,{method:'POST'});toast('✅ Confirmed!',true);loadDep();}
+  catch(e){toast('Error: '+esc(parseErr(e)),false);}
+  finally{btn.disabled=false;btn.textContent='✅ Confirm';}
+}
+async function rejDep(id){
+  const btn=event.target;
+  if(btn.disabled)return;
+  const reason=prompt('Reject အကြောင်းပြချက် ရေးပါ (Optional):','');
+  if(reason===null)return;
+  btn.disabled=true;btn.textContent='⏳...';
+  try{
+    await api(`/api/admin/deposits/${id}/reject`,{method:'POST',body:JSON.stringify({reason:reason.trim()})});
+    toast('Rejected',true);loadDep();
+  }catch(e){toast('Error: '+esc(parseErr(e)),false);}
+  finally{btn.disabled=false;btn.textContent='❌ Reject';}
+}
+
+/* ── Game History ── */
+let histPage=1,histDeb;
+function debouncHist(){clearTimeout(histDeb);histDeb=setTimeout(()=>loadHistory(1),380);}
+
+async function loadHistory(page){
+  histPage=page||1;
+  const q=document.getElementById('histQ').value.trim();
+  const el=document.getElementById('histList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api(`/api/admin/games?page=${histPage}&search=${encodeURIComponent(q)}`);
+    if(!data.games.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">ပွဲစဉ် မရှိပါ</div>';return;}
+    el.innerHTML=data.games.map(g=>{
+      const p1id=g.players?.[0];const p2id=g.players?.[1];
+      const p1n=g.pNames?.[p1id]||`User${p1id}`;
+      const p2n=g.pNames?.[p2id]||`User${p2id}`;
+      const isAI=g.isAIGame||g.players?.includes(-999999);
+      return `<div class="req">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+          <div>
+            <div style="font-weight:700;font-size:13px;">${esc(p1n)} <span style="color:var(--sub);">vs</span> ${esc(p2n)}</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px;">${isAI?'🤖 AI Game':'👥 Real Game'} &nbsp;•&nbsp; ${new Date(g.createdAt).toLocaleString()}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="bdg ${g.winner===-1?'bg-blu':g.winner?'bg-grn':'bg-red'}">${esc(g.winnerName||'—')}</div>
+            <div style="font-size:10px;color:var(--sub);margin-top:3px;">ID: ${esc(g.gameId?.slice(-8)||'-')}</div>
+          </div>
+        </div>
+        <button class="btn btn-red btn-sm" style="width:100%;" onclick="delGame('${esc(g.gameId)}','${esc(g.winnerName||'')}')">🗑 ဖျက်မည် (ငွေပါနုတ်မည်)</button>
+      </div>`;
+    }).join('');
+    // Pagination
+    const pag=document.getElementById('histPag');pag.innerHTML='';
+    for(let i=1;i<=data.pages;i++){
+      const b=document.createElement('button');
+      b.className='btn btn-sm '+(i===histPage?'btn-pur':'btn-gh');
+      b.textContent=i;b.onclick=()=>loadHistory(i);pag.appendChild(b);
+    }
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error: '+esc(e.message)+'</div>';}
+}
+
+async function delGame(gameId, winnerName){
+  if(!confirm(`ပွဲစဉ် "${gameId}" ကို ဖျက်မည်။\n⚠️ ${winnerName==='🤝 သရေ'?'သရေကျ ငွေပြန်အမ်းကို နုတ်မည်':'အနိုင်ရသူ '+winnerName+' ၏ ဆုငွေ '+WIN_PRIZE+' MMK နုတ်မည်'}\n\nဆက်လုပ်မည်?`))return;
+  try{
+    await api(`/api/admin/games/${encodeURIComponent(gameId)}`,{method:'DELETE'});
+    toast('🗑 ဖျက်ပြီးပါပြီ + ငွေပါနုတ်ပြီ',true);
+    loadHistory(histPage);
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+/* ── Withdrawals ── */
+let wdFilter='pending';
+async function loadWd(s){
+  wdFilter=s||wdFilter;
+  ['pending','confirmed','rejected'].forEach(f=>{
+    const b=document.getElementById('wf-'+f);
+    b.className='btn btn-sm '+(f===wdFilter?'btn-ylw':'btn-gh');
+  });
+  const el=document.getElementById('wdList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api('/api/admin/withdrawals?status='+wdFilter);
+    if(!data.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">မရှိပါ</div>';return;}
+    el.innerHTML=data.map(w=>`
+      <div class="req">
+        <div class="req-row">
+          <div>
+            <div class="rlbl">User</div>
+            <div class="rval">${esc(w.userName)}</div>
+            <div style="font-size:11px;color:var(--sub);">ID: ${w.userId}</div>
+          </div>
+          <div style="text-align:right;">
+            <div class="rlbl">ပမာဏ</div>
+            <div class="rval" style="color:var(--pk);">${w.amount.toLocaleString()} ကျပ်</div>
+            <div class="bdg ${w.status==='confirmed'?'bg-grn':w.status==='rejected'?'bg-red':'bg-ylw'}" style="margin-top:4px;">${w.status}</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:9px;">
+          <div><div class="rlbl">KPay အမည်</div><div style="font-size:12px;">${esc(w.kpayName||'-')}</div></div>
+          <div><div class="rlbl">KPay နံပါတ်</div><div style="font-size:12px;color:#a78bfa;font-family:monospace;">${esc(w.kpayNumber||'-')}</div></div>
+        </div>
+        ${w.userBalance!==undefined?`<div style="font-size:12px;color:var(--sub);margin-bottom:8px;">User ကျန်: ${w.userBalance.toLocaleString()} ကျပ်</div>`:''}
+        <div style="font-size:10px;color:rgba(255,255,255,.2);margin-bottom:8px;">${new Date(w.createdAt).toLocaleString()}</div>
+        ${w.status==='pending'?`<div class="rack">
+          <button class="btn btn-grn btn-sm btn-full" onclick="cfmWd('${w._id}')">✅ Confirm</button>
+          <button class="btn btn-red btn-sm btn-full" onclick="rejWd('${w._id}')">❌ Reject</button>
+        </div>`:''}
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error</div>';}
+}
+
+async function cfmWd(id){
+  const btn=event.target;
+  if(btn.disabled)return;
+  if(!confirm('Confirm ပြုလုပ်မည်?\n(ငွေလွှဲပြီးမှ confirm ပါ)'))return;
+  btn.disabled=true;btn.textContent='⏳...';
+  try{await api(`/api/admin/withdrawals/${id}/confirm`,{method:'POST'});toast('✅ Confirmed!',true);loadWd();}
+  catch(e){toast('Error: '+esc(parseErr(e)),false);}
+  finally{btn.disabled=false;btn.textContent='✅ Confirm';}
+}
+async function rejWd(id){
+  const btn=event.target;
+  if(btn.disabled)return;
+  if(!confirm('Reject ပြုလုပ်မည်? (ငွေပြန်အမ်းမည်)'))return;
+  btn.disabled=true;btn.textContent='⏳...';
+  try{await api(`/api/admin/withdrawals/${id}/reject`,{method:'POST'});toast('Rejected & Refunded',true);loadWd();}
+  catch(e){toast('Error: '+esc(parseErr(e)),false);}
+  finally{btn.disabled=false;btn.textContent='❌ Reject';}
+}
+
+/* ── Users ── */
+function debounceSrch(){clearTimeout(srchDeb);srchDeb=setTimeout(searchUsers,380);}
+function searchUsers(){loadUsers(1);}
+
+async function loadUsers(page){
+  usrPage=page||1;
+  const q=document.getElementById('usrQ').value.trim();
+  const el=document.getElementById('userList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api(`/api/admin/users?page=${usrPage}&search=${encodeURIComponent(q)}`);
+    if(!data.users.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">User မတွေ့ပါ</div>';return;}
+    el.innerHTML=data.users.map(u=>`
+      <div class="ucard ${u.isBanned?'banned':''}" onclick='showUserDet(${JSON.stringify(u)})'>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:700;font-size:14px;">${esc(u.firstName||u.username||'User')}
+              ${u.isBanned?'<span class="bdg bg-red" style="margin-left:5px;">Banned</span>':''}
+              ${u.botMode?'<span class="bdg bg-blu" style="margin-left:5px;">🤖 Bot</span>':''}${u.role==='agent'?'<span class="bdg bg-grn" style="margin-left:5px;">🎯 Agent</span>':''}
+            </div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px;">@${esc(u.username||'-')} • ID: ${u.telegramId}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:900;color:var(--grn);font-size:14px;">${(u.balance||0).toLocaleString()} ကျပ်</div>
+            <div style="font-size:10px;color:var(--sub);">🏆${u.wins||0} ❌${u.losses||0} 🎮${u.totalGames||0}</div>
+          </div>
+        </div>
+      </div>`).join('');
+    // Pagination
+    const pag=document.getElementById('userPag');pag.innerHTML='';
+    for(let i=1;i<=data.pages;i++){
+      const b=document.createElement('button');
+      b.className='btn btn-sm '+(i===usrPage?'btn-pur':'btn-gh');
+      b.textContent=i;b.onclick=()=>loadUsers(i);pag.appendChild(b);
+    }
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error</div>';}
+}
+
+async function loadHighBalancers(){
+  const el=document.getElementById('highList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api('/api/admin/high-balancers');
+    if(!data.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">ငွေပမာဏ 4000 ကျော်သူ မရှိပါ</div>';return;}
+    el.innerHTML=data.map(u=>`
+      <div class="ucard ${u.isBanned?'banned':''}" onclick='showUserDet(${JSON.stringify(u)})'>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:700;font-size:14px;">${esc(u.firstName||u.username||'User')}
+              ${u.isBanned?'<span class="bdg bg-red" style="margin-left:5px;">Banned</span>':''}
+              ${u.botMode?'<span class="bdg bg-blu" style="margin-left:5px;">🤖 Bot</span>':''}
+            </div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px;">@${esc(u.username||'-')} • ID: ${u.telegramId}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:900;color:var(--grn);font-size:14px;">${(u.balance||0).toLocaleString()} ကျပ်</div>
+            <div style="font-size:10px;color:var(--sub);">💳 သွင်းငွေ: ${(u.totalDeposited||0).toLocaleString()} ကျပ်</div>
+          </div>
+        </div>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error: '+esc(e.message)+'</div>';}
+}
+
+// Enhance showUserDet to include totalDeposited
+async function showUserDet(u){
+  // Fetch totalDeposited if not present
+  let totalDeposited = u.totalDeposited;
+  if (totalDeposited === undefined) {
+    try {
+      const userDetail = await api(`/api/admin/users/${u.telegramId}`); // custom endpoint? we don't have one. We'll just display balance for now, but we can compute from deposits if needed.
+      // For simplicity, we'll keep as is – the high balancers tab already shows totalDeposited.
+    } catch(e) {}
+  }
+  const det=document.getElementById('userDet');
+  det.style.display='block';
+  det.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;">
+      <div style="font-weight:800;font-size:.95rem;">👤 User Details</div>
+      <button class="btn btn-gh btn-sm" onclick="document.getElementById('userDet').style.display='none'">✕</button>
+    </div>
+    <div class="det-grid">
+      <div class="det-item"><div class="rlbl">နာမည်</div><div style="font-weight:700;">${esc(u.firstName||'-')}</div></div>
+      <div class="det-item"><div class="rlbl">Username</div><div style="color:#a78bfa;">@${esc(u.username||'-')}</div></div>
+      <div class="det-item"><div class="rlbl">Telegram ID</div><div style="font-family:monospace;color:#93c5fd;">${u.telegramId}</div></div>
+      <div class="det-item"><div class="rlbl">လက်ကျန်</div><div style="font-weight:900;color:var(--grn);">${(u.balance||0).toLocaleString()} ကျပ်</div></div>
+      <div class="det-item"><div class="rlbl">သွင်းငွေ စုစုပေါင်း</div><div style="color:var(--blu);">${(u.totalDeposited||0).toLocaleString()} ကျပ်</div></div>
+      <div class="det-item"><div class="rlbl">ကစားကြိမ် / နိုင် / ရှုံး</div><div>${u.totalGames||0} / ${u.wins||0} / ${u.losses||0}</div></div>
+      <div class="det-item"><div class="rlbl">Status</div><div class="bdg ${u.isBanned?'bg-red':'bg-grn'}">${u.isBanned?'Banned':'Active'}</div></div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <div class="rlbl" style="margin-bottom:6px;">💰 Balance ပြောင်းမည်</div>
+      <div style="display:flex;gap:6px;">
+        <input class="inp" id="adjA" type="number" placeholder="ပမာဏ (+/-)" style="flex:1;">
+        <input class="inp" id="adjR" placeholder="အကြောင်း" style="flex:1;">
+        <button class="btn btn-ylw" style="padding:10px;" onclick="adjBal(${u.telegramId})">OK</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span class="rlbl">🤖 Bot Mode</span>
+      <label class="tog"><input type="checkbox" id="botModeTog" ${u.botMode?'checked':''} onchange="toggleBotMode(${u.telegramId}, this.checked)"><span class="sl2"></span></label>
+    </div>
+    <button class="btn ${u.isBanned?'btn-grn':'btn-red'} btn-full" onclick="togBan(${u.telegramId},${!u.isBanned})">
+      ${u.isBanned?'🔓 Unban User':'🚫 Ban User'}
+    </button>
+    <button class="btn ${u.role==='agent'?'btn-ylw':'btn-grn'} btn-full" style="margin-top:7px;" onclick="toggleAgent(${u.telegramId},${u.role!=='agent'})">
+      ${u.role==='agent'?'🎯 Agent ဖြုတ်မည်':'🎯 Make Agent'}
+    </button>`;
+  det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function toggleBotMode(tid, enabled){
+  try{
+    await api(`/api/admin/users/${tid}/botmode`,{method:'POST',body:JSON.stringify({enabled})});
+    toast(enabled?'🤖 Bot Mode ON':'👤 Bot Mode OFF',true);
+    loadUsers(usrPage);
+    loadHighBalancers(); // refresh high balancers too
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+async function adjBal(tid){
+  const a=parseInt(document.getElementById('adjA').value);
+  const r=document.getElementById('adjR').value;
+  if(!a||isNaN(a))return toast('ပမာဏ ထည့်ပါ',false);
+  try{
+    const d=await api(`/api/admin/users/${tid}/balance`,{method:'POST',body:JSON.stringify({amount:a,reason:r})});
+    toast(`Balance ပြောင်းပြီ! ကျန်: ${d.newBalance.toLocaleString()} ကျပ်`,true);
+    document.getElementById('userDet').style.display='none';
+    loadUsers(usrPage);
+    loadHighBalancers();
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+async function togBan(tid,ban){
+  if(!confirm(`${ban?'Ban':'Unban'} ပြုလုပ်မည်?`))return;
+  try{
+    await api(`/api/admin/users/${tid}/ban`,{method:'POST',body:JSON.stringify({ban})});
+    toast(ban?'🚫 Banned':'✅ Unbanned',true);
+    document.getElementById('userDet').style.display='none';
+    loadUsers(usrPage);
+    loadHighBalancers();
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+/* ── Messaging ── */
+function setLd(p,on){
+  document.getElementById(p+'Tx').style.display=on?'none':'inline';
+  document.getElementById(p+'Sp').style.display=on?'inline-block':'none';
+}
+
+async function sendMsg(){
+  const uid=document.getElementById('msgUid').value.trim();
+  const msg=document.getElementById('msgTxt').value.trim();
+  if(!uid||!msg)return toast('ID နှင့် စာ ဖြည့်ပါ',false);
+  setLd('msg',true);
+  try{
+    await api('/api/admin/message',{method:'POST',body:JSON.stringify({telegramId:parseInt(uid),message:msg})});
+    toast('✅ ပို့ပြီးပါပြီ!',true);document.getElementById('msgTxt').value='';
+  }catch(e){toast('Error: '+e.message,false);}
+  setLd('msg',false);
+}
+
+async function sendBC(){
+  const msg=document.getElementById('bcTxt').value.trim();
+  const bt=document.getElementById('bcBtnT').value.trim();
+  const bu=document.getElementById('bcBtnU').value.trim();
+  if(!msg)return toast('Broadcast စာ ဖြည့်ပါ',false);
+  if(!confirm('Users အားလုံးဆီ Broadcast ပို့မည်?'))return;
+  setLd('bc',true);
+  try{
+    await api('/api/admin/broadcast',{method:'POST',body:JSON.stringify({message:msg,buttonText:bt,buttonUrl:bu})});
+    toast('📢 Broadcast Started!',true);document.getElementById('bcTxt').value='';
+  }catch(e){toast('Error: '+e.message,false);}
+  setLd('bc',false);
+}
+
+function esc(s){return(s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+
+// Auto-refresh live stats every 30s
+setInterval(async()=>{
+  if(!adminId)return;
+  try{
+    const d=await api('/api/admin/stats');
+    document.getElementById('hAG').textContent=d.activeGames||0;
+    document.getElementById('hQ').textContent=d.queueLength||0;
+    document.getElementById('dPD').textContent=d.pendingDeposits||0;
+    document.getElementById('dPW').textContent=d.pendingWithdrawals||0;
+  }catch(e){}
+},30000);
+
+
+/* ── Redeem Codes ── */
+async function createCode(){
+  const code=document.getElementById('rcCode').value.trim().toUpperCase();
+  const amount=parseInt(document.getElementById('rcAmount').value);
+  const maxUses=parseInt(document.getElementById('rcMax').value)||1;
+  if(!code)return toast('Code နာမည် ထည့်ပါ',false);
+  if(!amount||amount<1)return toast('ပမာဏ ဖြည့်ပါ',false);
+  document.getElementById('rcTx').style.display='none';
+  document.getElementById('rcSp').style.display='inline-block';
+  try{
+    const d=await api('/api/admin/redeem/create',{method:'POST',
+      body:JSON.stringify({code,amount,maxUses})});
+    toast(`✅ Code "${d.code.code}" ဖန်တီးပြီ`,true);
+    document.getElementById('rcCode').value='';
+    document.getElementById('rcAmount').value='';
+    document.getElementById('rcMax').value='';
+    loadCodes();
+  }catch(e){toast(parseErr(e)||'Error',false);}
+  document.getElementById('rcTx').style.display='inline';
+  document.getElementById('rcSp').style.display='none';
+}
+
+async function loadCodes(){
+  const el=document.getElementById('codeList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api('/api/admin/redeem/list');
+    if(!data.length){
+      el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">Code မရှိသေးပါ</div>';return;
+    }
+    el.innerHTML=data.map(c=>`
+      <div class="ccode${c.isActive?'':' inactive'}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+          <div>
+            <div class="code-badge">${esc(c.code)}</div>
+            <div style="font-size:13px;margin-bottom:3px;">
+              💰 <b style="color:#34d399;">${c.amount.toLocaleString()} MMK</b>
+              &nbsp;•&nbsp;
+              👥 ${c.usedBy.length}/${c.maxUses===0?'∞':c.maxUses} ယောက်
+            </div>
+            <div style="font-size:11px;color:var(--sub);">${new Date(c.createdAt).toLocaleString()}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0;">
+            <button class="btn btn-sm ${c.isActive?'btn-ylw':'btn-grn'}" onclick="toggleCode('${c._id}')">
+              ${c.isActive?'🔴 ပိတ်မည်':'🟢 ဖွင့်မည်'}
+            </button>
+            <button class="btn btn-red btn-sm" onclick="deleteCode('${c._id}','${esc(c.code)}')">🗑️ ဖျက်</button>
+          </div>
+        </div>
+        ${c.usedBy.length>0?`<div style="font-size:11px;color:var(--sub);margin-top:7px;border-top:1px solid rgba(255,255,255,.07);padding-top:7px;">
+          သုံးသူများ ID: ${c.usedBy.slice(0,8).join(', ')}${c.usedBy.length>8?' …':''}
+        </div>`:''}
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error: '+esc(e.message)+'</div>';}
+}
+
+async function toggleCode(id){
+  try{
+    const d=await api('/api/admin/redeem/'+id+'/toggle',{method:'POST'});
+    toast(d.isActive?'🟢 Code ဖွင့်ပြီ':'🔴 Code ပိတ်ပြီ',true);
+    loadCodes();
+  }catch(e){toast('Error',false);}
+}
+
+async function deleteCode(id,code){
+  if(!confirm(`Code "${code}" ကို ဖျက်မည်?`))return;
+  try{
+    await api('/api/admin/redeem/'+id,{method:'DELETE'});
+    toast('🗑️ Code ဖျက်ပြီ',true);loadCodes();
+  }catch(e){toast('Error',false);}
+}
+
+/* ── Make Agent toggle ── */
+async function toggleAgent(tid, makeAgent){
+  if(!confirm(makeAgent?`User ${tid} ကို Agent အဖြစ် ခွင့်ပြုမည်?`:`Agent ${tid} မှ Role ဖြုတ်မည်?`))return;
+  try{
+    await api('/api/admin/users/'+tid+'/make-agent',{method:'POST',body:JSON.stringify({isAgent:makeAgent})});
+    toast(makeAgent?'🎯 Agent ခွင့်ပြုပြီ':'ℹ️ Agent Role ဖြုတ်ပြီ', true);
+    loadUsers(usrPage);
+    document.getElementById('userDet').style.display='none';
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+/* ── Agents Tab ── */
+let agentPage=1, agentDeb;
+function debounceAgent(){clearTimeout(agentDeb);agentDeb=setTimeout(()=>loadAgents(1),400);}
+
+const BOX_CFG=[
+  {box:1,people:5,bonus:500},{box:2,people:10,bonus:2000},{box:3,people:30,bonus:10000},
+  {box:4,people:50,bonus:30000},{box:5,people:70,bonus:80000},{box:6,people:100,bonus:300000},
+  {box:7,people:150,bonus:800000},{box:8,people:200,bonus:2000000},{box:9,people:70,bonus:1000000},
+  {box:10,people:10,bonus:2000,loop:true}
+];
+
+async function loadAgents(page=1){
+  agentPage=page;
+  const q=document.getElementById('agentQ').value.trim();
+  const el=document.getElementById('agentList');
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api(`/api/admin/agents?page=${agentPage}&search=${encodeURIComponent(q)}`);
+    if(!data.agents.length){el.innerHTML='<div style="text-align:center;padding:22px;color:var(--sub);font-size:13px;">Agent မရှိသေးပါ</div>';return;}
+    el.innerHTML=data.agents.map(u=>`
+      <div class="ucard" onclick='showAgentDet(${JSON.stringify({...u,agentData:u.agentData})})'>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-weight:700;font-size:14px;">🎯 ${esc(u.firstName||u.username||'Agent')}
+              ${u.isBanned?'<span class="bdg bg-red" style="margin-left:5px;">Banned</span>':''}
+            </div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px;">@${esc(u.username||'-')} • ID: ${u.telegramId}</div>
+            <div style="font-size:11px;color:var(--blu);margin-top:2px;">👥 ${u.totalReferrals||0} referrals • 🏆 ${(u.agentData?.completedBoxes||0)}/10 boxes</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:900;color:var(--grn);font-size:14px;">${(u.balance||0).toLocaleString()} ကျပ်</div>
+            <div style="font-size:10px;color:var(--ylw);">💰 Earned: ${(u.agentData?.totalEarned||0).toLocaleString()} ကျပ်</div>
+          </div>
+        </div>
+      </div>`).join('');
+    const pag=document.getElementById('agentPag');pag.innerHTML='';
+    for(let i=1;i<=data.pages;i++){
+      const b=document.createElement('button');
+      b.className='btn btn-sm '+(i===agentPage?'btn-pur':'btn-gh');
+      b.textContent=i;b.onclick=()=>loadAgents(i);pag.appendChild(b);
+    }
+  }catch(e){el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error: '+esc(e.message)+'</div>';}
+}
+
+async function showAgentDet(u){
+  const det=document.getElementById('agentDet');
+  det.style.display='block';
+  const ms = u.agentData?.milestones||{};
+  const boxHtml = BOX_CFG.map(cfg=>{
+    const m = ms[cfg.box]||{current:0,claimed:false};
+    const pct = Math.min(100,Math.round((m.current/cfg.people)*100));
+    const done = m.claimed && !cfg.loop;
+    return `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px;margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-weight:700;font-size:12px;">${cfg.loop?'♾️ ':''}Box ${cfg.box} ${done?'<span style="color:var(--grn)">✅</span>':''}</span>
+        <span style="font-size:11px;color:var(--ylw);">${(cfg.bonus).toLocaleString()} ကျပ် bonus</span>
+      </div>
+      <div style="background:rgba(255,255,255,.07);border-radius:99px;height:5px;overflow:hidden;margin-bottom:4px;">
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#5c35f5,#00cc88);border-radius:99px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--sub);">
+        <span>${m.current}/${cfg.people} ယောက်</span>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-ylw" style="padding:3px 8px;font-size:10px;" onclick="adminAwardBox(${u.telegramId},${cfg.box})">🎁 Award</button>
+          <button class="btn btn-gh" style="padding:3px 8px;font-size:10px;" onclick="adminResetBox(${u.telegramId},${cfg.box})">🔄 Reset</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  det.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;">
+      <div style="font-weight:800;font-size:.95rem;">🎯 Agent Details</div>
+      <button class="btn btn-gh btn-sm" onclick="document.getElementById('agentDet').style.display='none'">✕</button>
+    </div>
+    <div class="det-grid">
+      <div class="det-item"><div class="rlbl">နာမည်</div><div style="font-weight:700;">${esc(u.firstName||'-')}</div></div>
+      <div class="det-item"><div class="rlbl">Telegram ID</div><div style="font-family:monospace;color:#93c5fd;">${u.telegramId}</div></div>
+      <div class="det-item"><div class="rlbl">လက်ကျန်</div><div style="font-weight:900;color:var(--grn);">${(u.balance||0).toLocaleString()} ကျပ်</div></div>
+      <div class="det-item"><div class="rlbl">Referrals</div><div style="color:var(--blu);">${u.totalReferrals||0} ယောက်</div></div>
+      <div class="det-item"><div class="rlbl">Total Earned</div><div style="color:var(--ylw);">${(u.agentData?.totalEarned||0).toLocaleString()} ကျပ်</div></div>
+      <div class="det-item"><div class="rlbl">Boxes ပြီး</div><div>${u.agentData?.completedBoxes||0}/10</div></div>
+    </div>
+    <div style="background:rgba(0,204,136,.06);border:1px solid rgba(0,204,136,.2);border-radius:12px;padding:12px;margin-bottom:12px;">
+      <div class="rlbl" style="margin-bottom:7px;">💰 Agent Balance ဖြည့်ပေးမည်</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;">
+        <input class="inp" id="agBalA" type="number" placeholder="ပမာဏ (+/- ကျပ်)" style="flex:1;">
+        <input class="inp" id="agBalR" placeholder="မှတ်ချက်" style="flex:1;">
+        <button class="btn btn-grn" style="padding:10px;white-space:nowrap;" onclick="adjAgentBal(${u.telegramId})">💾 OK</button>
+      </div>
+      <div style="font-size:11px;color:var(--sub);">⚠️ + ထည့်ရင် Balance ပေါင်း၊ - ထည့်ရင် Balance နုတ်</div>
+    </div>
+    <div style="background:rgba(245,184,0,.06);border:1px solid rgba(245,184,0,.2);border-radius:12px;padding:12px;margin-bottom:12px;">
+      <div class="rlbl" style="margin-bottom:7px;">📱 Agent KPay နံပါတ် သတ်မှတ်မည် (Deposit Page)</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <input class="inp" id="agKpayNum" type="tel" placeholder="09xxxxxxxxx" value="${esc(u.agentData?.agentKpayNumber||'')}">
+        <input class="inp" id="agKpayName" placeholder="အကောင့်ပိုင်ရှင် နာမည်" value="${esc(u.agentData?.agentKpayName||'')}">
+        <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--sub);cursor:pointer;">
+          <input type="checkbox" id="agHasWave" ${u.agentData?.hasWave?'checked':''} style="width:16px;height:16px;">
+          Wave Pay ပါ ထည့်ပေးမည်
+        </label>
+        <button class="btn btn-ylw" onclick="saveAgentKpay(${u.telegramId})">
+          <span id="agKpayTx">💾 KPay Info သိမ်းမည်</span><div class="spn" id="agKpaySp" style="display:none;"></div>
+        </button>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:5px;">ဤ Agent ၏ Link မှ ဝင်လာသော User များ ဤ KPay ကိုသာ မြင်ရမည်</div>
+    </div>
+    <div style="font-weight:800;font-size:.85rem;margin:12px 0 8px;">📦 Milestone Boxes</div>
+    ${boxHtml}
+    <button class="btn btn-red btn-full" style="margin-top:8px;" onclick="toggleAgent(${u.telegramId},false)">
+      🎯 Agent Role ဖြုတ်မည်
+    </button>`;
+  det.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+async function adminAwardBox(tid,box){
+  if(!confirm(`Box ${box} ဆုကြေး Agent ${tid} ကို ပေးမည်?`))return;
+  try{
+    const d=await api('/api/admin/agents/'+tid+'/award-box',{method:'POST',body:JSON.stringify({box})});
+    toast(`🎁 Box ${box} Award ပြီ (+${(d.bonus||0).toLocaleString()} ကျပ်)`,true);
+    loadAgents(agentPage);
+    document.getElementById('agentDet').style.display='none';
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+async function adjAgentBal(tid){
+  const a=parseInt(document.getElementById('agBalA').value);
+  const r=document.getElementById('agBalR').value.trim();
+  if(!a||isNaN(a))return toast('ပမာဏ ထည့်ပါ',false);
+  if(!confirm(`Agent ${tid} ၏ Balance ကို ${a>0?'+':''}${a.toLocaleString()} ကျပ် ပြောင်းမည်?`))return;
+  try{
+    const d=await api(`/api/admin/agents/${tid}/balance`,{method:'POST',body:JSON.stringify({amount:a,reason:r})});
+    toast(`✅ Agent Balance ပြောင်းပြီ! ကျန်: ${d.newBalance.toLocaleString()} ကျပ်`,true);
+    document.getElementById('agentDet').style.display='none';
+    loadAgents(agentPage);
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+async function saveAgentKpay(tid){
+  const kpayNumber=document.getElementById('agKpayNum').value.trim();
+  const kpayName=document.getElementById('agKpayName').value.trim();
+  const hasWave=document.getElementById('agHasWave').checked;
+  if(!kpayNumber)return toast('KPay နံပါတ် ထည့်ပါ',false);
+  document.getElementById('agKpayTx').style.display='none';
+  document.getElementById('agKpaySp').style.display='inline-block';
+  try{
+    await api(`/api/admin/agents/${tid}/payment-info`,{method:'POST',body:JSON.stringify({kpayNumber,kpayName,hasWave})});
+    toast('✅ KPay Info သိမ်းပြီ',true);
+    document.getElementById('agentDet').style.display='none';
+    loadAgents(agentPage);
+  }catch(e){toast('Error: '+e.message,false);}
+  document.getElementById('agKpayTx').style.display='inline';
+  document.getElementById('agKpaySp').style.display='none';
+}
+
+/* ── Invited From Agent ── */
+let invitedExpanded = {};
+async function loadInvited(){
+  const el=document.getElementById('invitedList');
+  el.innerHTML='<div style="text-align:center;padding:24px;color:var(--sub);">Loading...</div>';
+  try{
+    const data=await api('/api/admin/agent-referrals');
+    if(!data.length){
+      el.innerHTML='<div style="text-align:center;padding:24px;color:var(--sub);font-size:13px;">Agent မရှိသေးပါ</div>';
+      return;
+    }
+    el.innerHTML=data.map(ag=>`
+      <div style="background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:14px;padding:13px;margin-bottom:9px;">
+        <!-- Agent header row -->
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">
+          <div>
+            <div style="font-weight:800;font-size:14px;">🎯 ${esc(ag.agentName)}</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:2px;">ID: ${ag.agentId} &nbsp;•&nbsp; 💰 ${ag.agentBalance.toLocaleString()} ကျပ်</div>
+          </div>
+          <button class="btn btn-gh btn-sm" onclick="toggleInvDetail('inv-${ag.agentId}')">📋 ကြည့်မည်</button>
+        </div>
+        <!-- Stats grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;">
+          <div style="background:rgba(61,158,255,.08);border:1px solid rgba(61,158,255,.2);border-radius:9px;padding:9px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:900;color:var(--blu);">${ag.totalReferrals}</div>
+            <div style="font-size:10px;color:var(--sub);margin-top:2px;">ဖိတ်သူ</div>
+          </div>
+          <div style="background:rgba(0,204,136,.08);border:1px solid rgba(0,204,136,.2);border-radius:9px;padding:9px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:900;color:var(--grn);">${ag.activeReferrals}</div>
+            <div style="font-size:10px;color:var(--sub);margin-top:2px;">Active</div>
+          </div>
+          <div style="background:rgba(245,184,0,.08);border:1px solid rgba(245,184,0,.2);border-radius:9px;padding:9px;text-align:center;">
+            <div style="font-size:.85rem;font-weight:900;color:var(--ylw);">${ag.totalSales.toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--sub);margin-top:2px;">Total Sales ကျပ်</div>
+          </div>
+        </div>
+        <!-- Referral user list (collapsible) -->
+        <div id="inv-${ag.agentId}" style="display:none;">
+          ${ag.referrals.length===0
+            ? '<div style="text-align:center;padding:12px;color:var(--sub);font-size:12px;">ဖိတ်ထားသူ မရှိသေးပါ</div>'
+            : ag.referrals.map(u=>`
+              <div style="display:flex;justify-content:space-between;align-items:center;
+                background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);
+                border-radius:9px;padding:9px 11px;margin-top:5px;">
+                <div>
+                  <div style="font-weight:700;font-size:13px;">${esc(u.name)}</div>
+                  <div style="font-size:10px;color:var(--sub);">@${esc(u.username||'-')} • ${new Date(u.joinedAt).toLocaleDateString()}</div>
+                </div>
+                <div style="font-weight:800;color:var(--grn);font-size:13px;">${(u.balance||0).toLocaleString()} ကျပ်</div>
+              </div>`).join('')
+          }
+        </div>
+      </div>`).join('');
+  }catch(e){
+    el.innerHTML='<div style="color:#f87171;padding:16px;text-align:center;">Error: '+esc(e.message)+'</div>';
+  }
+}
+
+function toggleInvDetail(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+
+async function adminResetBox(tid,box){
+  if(!confirm(`Box ${box} ကို Reset လုပ်မည်?`))return;
+  try{
+    await api('/api/admin/agents/'+tid+'/reset-box',{method:'POST',body:JSON.stringify({box})});
+    toast(`🔄 Box ${box} Reset ပြီ`,true);
+    loadAgents(agentPage);
+    document.getElementById('agentDet').style.display='none';
+  }catch(e){toast('Error: '+e.message,false);}
+}
+
+function parseErr(e){
+  try{return JSON.parse(e.message).error||e.message;}catch{return e.message;}
+}
+
+window.addEventListener('DOMContentLoaded',tryAutoAuth);
+</script>
+</body>
+</html>

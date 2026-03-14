@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Agent Panel</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ══ TOKENS ══ */
+:root{
+  --bg:#08080f; --sur:#111118; --sur2:#16161f;
+  --bdr:rgba(255,255,255,.07); --bdr2:rgba(255,255,255,.13);
+  --acc:#5c35f5; --pk:#f54565; --grn:#00cc88; --blu:#3d9eff; --ylw:#f5b800;
+  --tx:#eaeaf2; --sub:rgba(255,255,255,.32);
+  --nav-h:64px; --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--tx);
+  display:flex;flex-direction:column;max-width:480px;margin:0 auto;}
+
+/* ── Ambient ── */
+.amb{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 40% at 15% 0%,rgba(92,53,245,.13) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 35% at 85% 100%,rgba(0,204,136,.09) 0%,transparent 60%);}
+
+/* ── Loader ── */
+#ldr{position:fixed;inset:0;z-index:800;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;background:var(--bg);}
+.ldr-icon{font-size:3rem;animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+.ldr-title{font-size:1.4rem;font-weight:900;
+  background:linear-gradient(135deg,#00cc88,#3d9eff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.ring{width:26px;height:26px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.1);border-top-color:#00cc88;
+  animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Error Screen ── */
+#errSc{position:fixed;inset:0;z-index:700;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;text-align:center;
+  padding:28px;background:var(--bg);}
+.es-icon{font-size:3.5rem;}
+.es-title{font-size:1.15rem;font-weight:800;}
+.es-sub{font-size:13px;color:var(--sub);max-width:270px;line-height:1.7;}
+
+/* ── Shell ── */
+#shell{position:relative;z-index:1;display:none;flex-direction:column;height:100%;overflow:hidden;}
+
+/* ── Top Header ── */
+.hdr{flex-shrink:0;display:flex;align-items:center;gap:11px;padding:12px 16px 10px;
+  background:var(--sur);border-bottom:1px solid var(--bdr);backdrop-filter:blur(20px);}
+.hdr-av{width:40px;height:40px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,#5c35f5,#00cc88);
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.hdr-info{flex:1;min-width:0;}
+.hdr-name{font-weight:800;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hdr-role{font-size:10px;color:var(--grn);font-weight:700;margin-top:1px;}
+.hdr-bal{flex-shrink:0;text-align:right;}
+.hdr-bal-amt{font-weight:900;font-size:1.05rem;color:var(--grn);line-height:1;}
+.hdr-bal-lbl{font-size:10px;color:var(--sub);margin-top:2px;}
+
+/* ── Stats Bar ── */
+.sbar{flex-shrink:0;display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--bdr);border-bottom:1px solid var(--bdr);}
+.sb-it{background:var(--sur);padding:8px 4px;text-align:center;}
+.sb-val{font-size:1rem;font-weight:900;line-height:1;}
+.sb-lbl{font-size:9px;color:var(--sub);margin-top:2px;white-space:nowrap;}
+
+/* ── Pages ── */
+.pages{flex:1;overflow:hidden;position:relative;}
+.page{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 12px calc(var(--nav-h) + var(--safe-b) + 8px);display:none;}
+.page.active{display:block;}
+
+/* ── Bottom Nav ── */
+.bnav{flex-shrink:0;display:grid;grid-template-columns:repeat(4,1fr);
+  height:var(--nav-h);padding-bottom:var(--safe-b);
+  background:var(--sur);border-top:1px solid var(--bdr);}
+.bn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;color:var(--sub);border:none;background:none;
+  font-family:'Outfit',sans-serif;position:relative;transition:color .15s;}
+.bn.on{color:var(--acc);}
+.bn.on .bn-dot{opacity:1;}
+.bn-ic{font-size:1.3rem;line-height:1;}
+.bn-lb{font-size:9px;font-weight:700;}
+.bn-dot{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);
+  width:4px;height:4px;border-radius:50%;background:var(--acc);opacity:0;transition:opacity .15s;}
+.bn-badge{position:absolute;top:6px;right:calc(50% - 16px);
+  background:var(--pk);color:#fff;font-size:9px;font-weight:900;
+  border-radius:99px;padding:1px 5px;min-width:16px;text-align:center;display:none;}
+.bn-badge.on{display:block;}
+
+/* ══ SHARED COMPONENTS ══ */
+
+/* Section header */
+.sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 1px;}
+.sec-t{font-size:13px;font-weight:800;display:flex;align-items:center;gap:6px;}
+.sec-s{font-size:11px;color:var(--sub);}
+
+/* Card */
+.card{background:var(--sur2);border:1px solid var(--bdr);border-radius:14px;padding:14px;margin-bottom:10px;}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  font-family:'Outfit',sans-serif;font-weight:700;border:none;cursor:pointer;
+  border-radius:10px;padding:10px 14px;color:#fff;font-size:12px;
+  transition:opacity .12s,transform .1s;user-select:none;}
+.btn:active:not(:disabled){transform:scale(.96);}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
+.btn-f{width:100%;}
+.btn-grn{background:linear-gradient(135deg,#059669,#10b981);}
+.btn-red{background:rgba(220,38,38,.85);}
+.btn-blu{background:linear-gradient(135deg,#1d4ed8,#3b82f6);}
+.btn-pur{background:linear-gradient(135deg,#5c35f5,#7c3aed);}
+.btn-ylw{background:linear-gradient(135deg,#b45309,#f59e0b);}
+.btn-gh{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);}
+.btn-sm{padding:7px 11px;font-size:11px;border-radius:8px;}
+/* Spinner inside button */
+.bsp{width:13px;height:13px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+  animation:spin .6s linear infinite;display:none;}
+
+/* Empty state */
+.empty{display:flex;flex-direction:column;align-items:center;padding:30px 16px;gap:8px;text-align:center;}
+.ei{font-size:2.2rem;opacity:.5;}
+.et{font-size:13px;color:var(--sub);line-height:1.6;}
+
+/* Toast */
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 10px);left:50%;
+  transform:translateX(-50%) translateY(16px);
+  background:rgba(12,12,22,.96);border:1px solid rgba(255,255,255,.1);border-radius:14px;
+  padding:11px 20px;font-size:13px;font-weight:700;z-index:9999;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .25s;
+  backdrop-filter:blur(20px);white-space:pre-line;
+  max-width:calc(100vw - 32px);text-align:center;line-height:1.5;
+  opacity:0;pointer-events:none;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.t-ok{border-color:rgba(0,204,136,.4);color:#00cc88;}
+.t-err{border-color:rgba(245,69,101,.4);color:#f87171;}
+.t-info{border-color:rgba(61,158,255,.4);color:#3d9eff;}
+
+/* ══ PAGE: HOME ══ */
+.ref-card{background:linear-gradient(135deg,rgba(92,53,245,.14),rgba(0,204,136,.09));
+  border:1px solid rgba(92,53,245,.28);border-radius:16px;padding:14px 15px;margin-bottom:10px;}
+.ref-lbl{font-size:11px;color:var(--sub);font-weight:600;margin-bottom:6px;}
+.ref-box{display:flex;align-items:center;gap:8px;
+  background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:9px 11px;margin-bottom:10px;}
+.ref-txt{flex:1;min-width:0;font-size:11px;color:#a78bfa;font-family:monospace;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ref-cbtn{flex-shrink:0;background:rgba(92,53,245,.25);border:1px solid rgba(92,53,245,.4);
+  color:#a78bfa;border-radius:7px;padding:5px 9px;font-size:11px;font-weight:700;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:background .12s;}
+.ref-cbtn:active{background:rgba(92,53,245,.5);}
+.ref-sbtn{width:100%;padding:10px;border-radius:10px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#5c35f5,#00cc88);
+  color:#fff;font-family:'Outfit',sans-serif;font-weight:800;font-size:13px;}
+.ref-sbtn:active{opacity:.85;}
+
+.qs-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.qs-box{background:var(--sur2);border:1px solid var(--bdr);border-radius:14px;
+  padding:16px 12px;text-align:center;}
+.qs-icon{font-size:1.6rem;margin-bottom:5px;}
+.qs-val{font-size:1rem;font-weight:900;line-height:1;}
+.qs-lbl{font-size:10px;color:var(--sub);margin-top:3px;}
+
+/* ══ PAGE: DEPOSITS ══ */
+.dep-card{background:var(--sur2);border:1px solid var(--bdr);border-radius:14px;
+  margin-bottom:9px;overflow:hidden;transition:opacity .25s,transform .25s;
+  display:flex;flex-direction:column;} /* FIX: explicit column flex */
+.dep-body{padding:13px 13px 10px;flex-shrink:0;}
+.dep-hdr{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.dep-hdr-left{flex:1;min-width:0;}
+.dep-hdr-right{flex-shrink:0;text-align:right;}
+.dep-uname{font-weight:800;font-size:14px;line-height:1.2;}
+.dep-umeta{font-size:11px;color:var(--sub);margin-top:2px;}
+.dep-amt{font-weight:900;font-size:1.1rem;color:var(--grn);line-height:1;}
+.dep-amt-lbl{font-size:10px;color:var(--sub);margin-top:2px;}
+.dep-txn{font-family:monospace;font-size:11px;color:#a78bfa;
+  background:rgba(167,139,250,.1);border-radius:6px;padding:5px 9px;
+  margin-bottom:10px;word-break:break-all;line-height:1.5;}
+.dep-acts{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:0 13px 13px;flex-shrink:0;}
+/* Inline reject confirmation dialog */
+.dep-confirm{display:none;flex-shrink:0;
+  margin:0 13px 13px;background:rgba(220,38,38,.08);
+  border:1px solid rgba(220,38,38,.3);border-radius:10px;padding:10px 12px;}
+.dep-confirm.show{display:block;}
+.dep-confirm-t{font-size:12px;font-weight:800;color:#f87171;margin-bottom:8px;}
+.dep-confirm-btns{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.dep-warn{margin:0 13px 10px;background:rgba(245,69,101,.1);
+  border:1px solid rgba(245,69,101,.3);border-radius:10px;padding:10px 12px;flex-shrink:0;}
+.dep-warn-t{font-size:12px;font-weight:800;color:#f87171;margin-bottom:4px;}
+.dep-warn-b{font-size:11px;color:rgba(248,113,113,.8);line-height:1.6;}
+.bal-banner{margin-bottom:10px;background:rgba(245,184,0,.08);
+  border:1px solid rgba(245,184,0,.28);border-radius:12px;padding:11px 13px;}
+.bal-banner-t{font-size:12px;font-weight:800;color:#f5b800;margin-bottom:3px;}
+.bal-banner-b{font-size:11px;color:rgba(245,184,0,.75);}
+
+/* ══ PAGE: BOXES ══ */
+.box-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.ms{background:var(--sur2);border:1px solid var(--bdr);border-radius:14px;
+  padding:13px;position:relative;overflow:hidden;transition:border-color .2s,background .2s;}
+.ms.ms-done{border-color:rgba(0,204,136,.35);background:rgba(0,204,136,.06);}
+.ms.ms-ready{border-color:rgba(92,53,245,.4);background:rgba(92,53,245,.07);
+  box-shadow:0 0 18px rgba(92,53,245,.13);}
+.ms.ms-loop{border-color:rgba(245,184,0,.35);background:rgba(245,184,0,.06);}
+.ms.ms-locked{opacity:.38;}
+.ms-tag{position:absolute;top:8px;right:8px;font-size:9px;font-weight:800;border-radius:5px;padding:2px 5px;}
+.ms-tag-loop{background:rgba(245,184,0,.2);color:#f5b800;border:1px solid rgba(245,184,0,.3);}
+.ms-tag-done{background:rgba(0,204,136,.2);color:#00cc88;border:1px solid rgba(0,204,136,.3);}
+.ms-num{font-size:9px;font-weight:800;color:var(--sub);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.ms-bonus{font-size:.9rem;font-weight:900;color:var(--ylw);line-height:1;margin-bottom:2px;}
+.ms-bonus.gc{color:var(--grn);}
+.ms-req{font-size:10px;color:var(--sub);line-height:1.4;margin-bottom:7px;}
+.ms-pb{width:100%;height:5px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden;margin-bottom:3px;}
+.ms-pf{height:100%;border-radius:99px;transition:width .5s ease;}
+.fp{background:linear-gradient(90deg,#5c35f5,#3d9eff);}
+.fg{background:linear-gradient(90deg,#059669,#00cc88);}
+.fy{background:linear-gradient(90deg,#b45309,#f5b800);}
+.ms-pt{display:flex;justify-content:space-between;font-size:9px;color:var(--sub);margin-bottom:7px;}
+.ms-btn{width:100%;padding:7px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Outfit',sans-serif;font-weight:800;font-size:11px;
+  transition:opacity .12s,transform .1s;}
+.ms-btn:active:not(:disabled){transform:scale(.97);}
+.ms-btn:disabled{opacity:.4;cursor:not-allowed;}
+.mb-claim{background:linear-gradient(135deg,#5c35f5,#10b981);color:#fff;}
+.mb-done{background:rgba(0,204,136,.15);color:var(--grn);}
+.mb-wait{background:rgba(255,255,255,.05);color:var(--sub);}
+.mb-lock{background:rgba(255,255,255,.04);color:var(--sub);}
+
+/* ══ PAGE: MEMBERS ══ */
+.mem{display:flex;align-items:center;gap:10px;
+  background:var(--sur2);border:1px solid var(--bdr);border-radius:12px;
+  padding:11px 13px;margin-bottom:7px;}
+.mem-av{width:36px;height:36px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(92,53,245,.4),rgba(0,204,136,.4));
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;}
+.mem-inf{flex:1;min-width:0;}
+.mem-nm{font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mem-mt{font-size:11px;color:var(--sub);margin-top:1px;}
+.mem-bl{font-weight:800;font-size:13px;color:var(--grn);flex-shrink:0;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:99px;}
+</style>
+</head>
+<body>
+<div class="amb"></div>
+
+<!-- Loader -->
+<div id="ldr">
+  <div class="ldr-icon">🎯</div>
+  <div class="ldr-title">Agent Panel</div>
+  <div class="ring"></div>
+</div>
+
+<!-- Error Screen -->
+<div id="errSc"><!-- injected --></div>
+
+<!-- Main Shell -->
+<div id="shell">
+
+  <!-- Header -->
+  <header class="hdr">
+    <div class="hdr-av">🎯</div>
+    <div class="hdr-info">
+      <div class="hdr-name" id="hName">—</div>
+      <div class="hdr-role">✅ Verified Agent</div>
+    </div>
+    <div class="hdr-bal">
+      <div class="hdr-bal-amt" id="hBal">0</div>
+      <div class="hdr-bal-lbl">ကျပ် လက်ကျန်</div>
+    </div>
+  </header>
+
+  <!-- Stats Bar -->
+  <div class="sbar">
+    <div class="sb-it"><div class="sb-val" style="color:#3d9eff" id="sRef">0</div><div class="sb-lbl">ဖိတ်သူ</div></div>
+    <div class="sb-it"><div class="sb-val" style="color:#f5b800;font-size:.8rem" id="sSales">0</div><div class="sb-lbl">Sales ကျပ်</div></div>
+    <div class="sb-it"><div class="sb-val" style="color:#00cc88;font-size:.8rem" id="sEarned">0</div><div class="sb-lbl">Earned ကျပ်</div></div>
+    <div class="sb-it"><div class="sb-val" style="color:#f54565" id="sBox">0/10</div><div class="sb-lbl">Box ပြီး</div></div>
+  </div>
+
+  <!-- Pages -->
+  <div class="pages">
+
+    <!-- HOME -->
+    <div class="page active" id="pg-home">
+      <div class="ref-card">
+        <div class="ref-lbl">🔗 Referral Link</div>
+        <div class="ref-box">
+          <div class="ref-txt" id="refTxt">Loading...</div>
+          <button class="ref-cbtn" onclick="copyLink()">📋 Copy</button>
+        </div>
+        <button class="ref-sbtn" onclick="shareLink()">📤 မျှဝေမည်</button>
+      </div>
+
+      <div class="sec">
+        <div class="sec-t">📊 Summary</div>
+        <button class="btn btn-gh btn-sm" onclick="refreshAll()">🔄</button>
+      </div>
+      <div class="qs-grid">
+        <div class="qs-box">
+          <div class="qs-icon">💰</div>
+          <div class="qs-val" style="color:#00cc88" id="hSales">0</div>
+          <div class="qs-lbl">Total Sales (ကျပ်)</div>
+        </div>
+        <div class="qs-box">
+          <div class="qs-icon">🎁</div>
+          <div class="qs-val" style="color:#f5b800" id="hEarned">0</div>
+          <div class="qs-lbl">Total Earned (ကျပ်)</div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-t">⏳ Pending Deposits
+          <span id="hPendBdg" style="display:none;background:rgba(245,69,101,.2);color:#f87171;font-size:10px;font-weight:800;border-radius:6px;padding:1px 6px;border:1px solid rgba(245,69,101,.3);"></span>
+        </div>
+        <button class="btn btn-gh btn-sm" onclick="go('deposits')">အားလုံး</button>
+      </div>
+      <div id="hPendList">
+        <div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- DEPOSITS -->
+    <div class="page" id="pg-deposits">
+      <div class="sec">
+        <div class="sec-t">💰 ငွေဖြည့်မှု တောင်းဆိုချက်များ</div>
+        <button class="btn btn-gh btn-sm" onclick="loadDeps(true)">🔄</button>
+      </div>
+      <div id="balBanner" class="bal-banner" style="display:none;">
+        <div class="bal-banner-t">⚠️ Balance နည်းနေသည်</div>
+        <div class="bal-banner-b">Admin ကို ဆက်သွယ်ပြီး Balance ဖြည့်ပါ</div>
+      </div>
+      <div id="depList">
+        <div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- BOXES -->
+    <div class="page" id="pg-boxes">
+      <div class="sec mb10">
+        <div class="sec-t">🏆 Milestone Boxes</div>
+        <div class="sec-s">ဆုကြေးစနစ်</div>
+      </div>
+      <div class="box-grid" id="boxGrid">
+        <div class="empty" style="grid-column:span 2"><div class="ei">📦</div><div class="et">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div class="page" id="pg-members">
+      <div class="sec">
+        <div class="sec-t">👥 Members</div>
+        <button class="btn btn-gh btn-sm" onclick="loadMems(true)">🔄</button>
+      </div>
+      <div id="memList">
+        <div class="empty"><div class="ei">👥</div><div class="et">Loading...</div></div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+
+  <!-- Bottom Nav -->
+  <nav class="bnav">
+    <button class="bn on" id="bn-home" onclick="go('home')">
+      <div class="bn-ic">🏠</div><div class="bn-lb">Home</div><div class="bn-dot"></div>
+    </button>
+    <button class="bn" id="bn-deposits" onclick="go('deposits')">
+      <div class="bn-ic">💰</div><div class="bn-lb">Deposits</div><div class="bn-dot"></div>
+      <div class="bn-badge" id="depBdg"></div>
+    </button>
+    <button class="bn" id="bn-boxes" onclick="go('boxes')">
+      <div class="bn-ic">🏆</div><div class="bn-lb">Boxes</div><div class="bn-dot"></div>
+    </button>
+    <button class="bn" id="bn-members" onclick="go('members')">
+      <div class="bn-ic">👥</div><div class="bn-lb">Members</div><div class="bn-dot"></div>
+    </button>
+  </nav>
+
+</div><!-- /shell -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ CONFIG ══ */
+const BACKEND='https://candycrushbackend.onrender.com';
+const BOX_CFG=[
+  {box:1, people:5,   perPerson:1000,  bonus:500,      label:'Box 1'},
+  {box:2, people:10,  perPerson:2000,  bonus:2000,     label:'Box 2'},
+  {box:3, people:30,  perPerson:3000,  bonus:10000,    label:'Box 3'},
+  {box:4, people:50,  perPerson:5000,  bonus:30000,    label:'Box 4'},
+  {box:5, people:70,  perPerson:10000, bonus:80000,    label:'Box 5'},
+  {box:6, people:100, perPerson:20000, bonus:300000,   label:'Box 6'},
+  {box:7, people:150, perPerson:30000, bonus:800000,   label:'Box 7'},
+  {box:8, people:200, perPerson:50000, bonus:2000000,  label:'Box 8'},
+  {box:9, people:70,  perPerson:70000, bonus:1000000,  label:'Box 9'},
+  {box:10,people:10,  perPerson:2000,  bonus:2000,     label:'Box 10',loop:true}
+];
+
+/* ── Burmese error map ── */
+const ERR={
+  'Agent မဟုတ်':'Agent မဟုတ်သေးပါ',
+  'မတွေ့ပါ':'Deposit မတွေ့ပါ',
+  'ပြင်ဆင်ပြီး':'ပြင်ဆင်ပြီးသားဖြစ်သည်',
+  'Referral မဟုတ်':'ဤ User သည် သင့် Referral မဟုတ်ပါ',
+  'မလောက်':'လက်ကျန်ငွေ မလောက်ပါ — Admin ထံ ဆက်သွယ်ပါ',
+  'Failed to fetch':'ဆာဗာ ချိတ်ဆက်မှု မရပါ — ထပ်ကြိုးစားပါ',
+  'NetworkError':'ကွန်ရက် အမှား — ထပ်ကြိုးစားပါ',
+};
+function myerr(msg){
+  if(!msg) return 'မသိသော အမှား';
+  for(const[k,v]of Object.entries(ERR)) if(msg.includes(k)) return v;
+  return msg;
+}
+
+let G={data:null,tid:null,link:'',tab:'home',pc:0,timer:null};
+
+/* ══ UTILS ══ */
+function K(n){return(n||0).toLocaleString()+' ကျပ်';}
+function esc(s){return(s||'').toString().replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));}
+function init1(name){return(name||'?').charAt(0).toUpperCase();}
+
+function toast(msg,type='ok'){
+  clearTimeout(G.timer);
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show t-'+type;
+  G.timer=setTimeout(()=>t.classList.remove('show'),3400);
+}
+
+/* ── Button busy/idle ── */
+function busy(btn,on){
+  if(!btn)return;
+  btn.disabled=on;
+  const sp=btn.querySelector('.bsp'),tx=btn.querySelector('.btx');
+  if(sp) sp.style.display=on?'inline-block':'none';
+  if(tx) tx.style.display=on?'none':'inline';
+}
+
+/* ══ AUTH ══ */
+function parseTg(s){
+  try{const p=new URLSearchParams(s);const u=p.get('user');if(u)return JSON.parse(u);}catch{}return null;
+}
+function waitTg(tg,ms=3000){
+  return new Promise(r=>{
+    if(tg?.initDataUnsafe?.user?.id){r(tg.initDataUnsafe.user);return;}
+    const p=parseTg(tg?.initData);if(p?.id){r(p);return;}
+    let e=0;const iv=setInterval(()=>{
+      e+=100;
+      const u=tg?.initDataUnsafe?.user;if(u?.id){clearInterval(iv);r(u);return;}
+      const p2=parseTg(tg?.initData);if(p2?.id){clearInterval(iv);r(p2);return;}
+      if(e>=ms){clearInterval(iv);r(null);}
+    },100);
+  });
+}
+
+/* ══ API ══ */
+async function api(path,opts={}){
+  const h={'Content-Type':'application/json',...(opts.headers||{})};
+  if(G.tid) h['x-telegram-id']=G.tid;
+  const res=await fetch(BACKEND+path,{...opts,headers:h});
+  const d=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(d.error||'Error');
+  return d;
+}
+
+/* ══ INIT ══ */
+async function init(){
+  const tg=window.Telegram?.WebApp;
+  if(tg){tg.ready();tg.expand();}
+
+  let u=tg?await waitTg(tg,3000):null;
+  if(u?.id){G.tid=u.id;sessionStorage.setItem('uid',String(G.tid));}
+  if(!G.tid){const s=sessionStorage.getItem('uid');if(s&&!isNaN(+s))G.tid=+s;}
+  if(!G.tid&&tg?.initData){
+    try{
+      const r=await fetch(BACKEND+'/api/auth',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData})});
+      const d=await r.json();
+      if(d?.telegramId){G.tid=d.telegramId;sessionStorage.setItem('uid',String(G.tid));}
+    }catch{}
+  }
+  if(!G.tid){
+    showErr('⚠️','Telegram ID မတွေ့ပါ','Bot မှ /agent နှိပ်ပြီး ဤ Panel ဖွင့်ပါ');
+    return;
+  }
+  try{
+    G.data=await api('/api/agent/panel');
+    document.getElementById('ldr').style.display='none';
+    renderShell();
+    loadDeps();
+    loadMems();
+  }catch(e){
+    document.getElementById('ldr').style.display='none';
+    const m=e.message||'';
+    if(m.includes('agent')||m.includes('Agent')||m.includes('မဟုတ်')){
+      showErr('🚫','Agent မဟုတ်သေးပါ','Admin မှ Agent ခွင့်ပြုမှ Panel ဝင်နိုင်မည်');
+    }else{
+      showErr('📡','ဆာဗာ ချိတ်ဆက်မသာ',myerr(m));
+    }
+  }
+}
+
+function showErr(icon,title,sub){
+  const s=document.getElementById('errSc');
+  s.innerHTML=`<div class="es-icon">${icon}</div><div class="es-title">${esc(title)}</div><div class="es-sub">${esc(sub)}</div>`;
+  s.style.display='flex';
+}
+
+/* ══ SHELL RENDER ══ */
+function renderShell(){
+  document.getElementById('shell').style.display='flex';
+  updateStats();
+  G.link=`https://t.me/${G.data.botUsername||'tictoe1_bot'}?start=${G.data.referralCode}`;
+  document.getElementById('refTxt').textContent=G.link;
+  renderBoxes();
+}
+
+function updateStats(){
+  const d=G.data;
+  document.getElementById('hName').textContent=d.firstName||d.username||'Agent';
+  document.getElementById('hBal').textContent=(d.balance||0).toLocaleString();
+  document.getElementById('sRef').textContent=d.totalReferrals||0;
+  document.getElementById('sSales').textContent=(d.totalSales||0).toLocaleString();
+  document.getElementById('sEarned').textContent=(d.totalEarned||0).toLocaleString();
+  document.getElementById('sBox').textContent=(d.completedBoxes||0)+'/10';
+  document.getElementById('hSales').textContent=(d.totalSales||0).toLocaleString();
+  document.getElementById('hEarned').textContent=(d.totalEarned||0).toLocaleString();
+}
+
+/* ══ NAV ══ */
+function go(name){
+  G.tab=name;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.bn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('active');
+  document.getElementById('bn-'+name).classList.add('on');
+}
+
+/* ══ REFERRAL ══ */
+function copyLink(){
+  navigator.clipboard.writeText(G.link)
+    .then(()=>toast('📋 Copy ပြီးပါပြီ!','ok'))
+    .catch(()=>toast('Copy မရပါ','err'));
+}
+function shareLink(){
+  if(window.Telegram?.WebApp){
+    window.Telegram.WebApp.openTelegramLink(
+      'https://t.me/share/url?url='+encodeURIComponent(G.link)+'&text='+encodeURIComponent('🎮 Candy Crush ကစားပြီး ငွေရှာကြစို့!')
+    );
+  }else{copyLink();}
+}
+
+/* ══ DEPOSITS ══ */
+async function loadDeps(showMsg=false){
+  const el=document.getElementById('depList');
+  const hel=document.getElementById('hPendList');
+  const E=`<div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div>`;
+  el.innerHTML=E; if(hel) hel.innerHTML=E;
+  try{
+    const deps=await api('/api/agent/deposits?status=pending');
+    G.pc=deps.length;
+    setBadge(G.pc);
+    const bdg=document.getElementById('hPendBdg');
+    if(bdg){bdg.style.display=G.pc?'inline-block':'none';bdg.textContent=G.pc;}
+
+    if(!G.pc){
+      const emp=`<div class="empty"><div class="ei">✅</div><div class="et">Pending တောင်းဆိုမှု မရှိသေးပါ</div></div>`;
+      el.innerHTML=emp; if(hel) hel.innerHTML=emp;
+      const bb=document.getElementById('balBanner');if(bb)bb.style.display='none';
+      if(showMsg) toast('✅ Pending မရှိပါ','ok');
+      return;
+    }
+
+    const html=deps.map(d=>depCardHtml(d,'full')).join('');
+    el.innerHTML=html;
+    if(hel) hel.innerHTML=deps.slice(0,2).map(d=>depCardHtml(d,'mini')).join('');
+    if(showMsg) toast(`⏳ ${deps.length} ခု ရှိသည်`,'info');
+  }catch(e){
+    const m=`<div class="empty"><div class="ei">❌</div><div class="et">${esc(myerr(e.message))}</div></div>`;
+    el.innerHTML=m; if(hel) hel.innerHTML=m;
+  }
+}
+
+function depCardHtml(d,mode){
+  const mt=d.paymentMethod==='wave'?'🌊 Wave':'📱 KPay';
+  const dt=new Date(d.createdAt).toLocaleString('my',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  const txn=(d.transactionId||'').slice(-12);
+  const amtStr=K(d.amount);
+  const actions=mode==='full'
+    ?`<div class="dep-acts">
+        <button class="btn btn-grn" id="cb-${d._id}" onclick="cfmDep('${d._id}',this)">
+          <span class="btx">✅ အတည်ပြု</span><span class="bsp"></span>
+        </button>
+        <button class="btn btn-red" id="rb-${d._id}" onclick="showRejectConfirm('${d._id}')">
+          <span class="btx">❌ ပယ်ချ</span><span class="bsp"></span>
+        </button>
+      </div>
+      <div class="dep-confirm" id="rc-${d._id}">
+        <div class="dep-confirm-t">⚠️ ဤ Deposit ကို ပယ်ချမည်မှာ သေချာပြီလား?</div>
+        <div class="dep-confirm-btns">
+          <button class="btn btn-red" id="rconf-${d._id}" onclick="rejDep('${d._id}',this)">
+            <span class="btx">✅ ဟုတ်ကဲ့</span><span class="bsp"></span>
+          </button>
+          <button class="btn btn-gh" onclick="hideRejectConfirm('${d._id}')">မလုပ်တော့ပါ</button>
+        </div>
+      </div>`
+    :`<div style="padding:0 13px 12px">
+        <button class="btn btn-pur btn-f btn-sm" onclick="go('deposits')">▶ Confirm / Reject</button>
+      </div>`;
+  return `
+  <div class="dep-card" id="dep-${d._id}">
+    <div class="dep-body">
+      <div class="dep-hdr">
+        <div class="dep-hdr-left">
+          <div class="dep-uname">${esc(d.userName)}</div>
+          <div class="dep-umeta">${mt} • ${esc(d.kpayName||'—')} • ${dt}</div>
+        </div>
+        <div class="dep-hdr-right">
+          <div class="dep-amt">${amtStr}</div>
+          <div class="dep-amt-lbl">သွင်းငွေ</div>
+        </div>
+      </div>
+      <div class="dep-txn">📝 Txn: …${esc(txn)}</div>
+    </div>
+    ${actions}
+  </div>`;
+}
+
+function setBadge(n){
+  const b=document.getElementById('depBdg');
+  if(n>0){b.textContent=n;b.classList.add('on');}else b.classList.remove('on');
+}
+
+/* ── Inline reject confirm helpers ── */
+function showRejectConfirm(id){
+  // Hide all other open confirms first
+  document.querySelectorAll('.dep-confirm.show').forEach(el=>el.classList.remove('show'));
+  const rc=document.getElementById('rc-'+id);
+  if(rc) rc.classList.add('show');
+}
+function hideRejectConfirm(id){
+  const rc=document.getElementById('rc-'+id);
+  if(rc) rc.classList.remove('show');
+}
+
+/* ── Processing set — prevents double-click race ── */
+const processingDeps = new Set();
+
+async function cfmDep(id,btn){
+  if(processingDeps.has(id)) return; // block double-click
+  if(btn?.disabled) return;
+  processingDeps.add(id);
+  busy(btn,true);
+  // Also disable reject button for this card
+  const rb=document.getElementById('rb-'+id);
+  if(rb) rb.disabled=true;
+  hideRejectConfirm(id);
+  try{
+    const r=await fetch(`${BACKEND}/api/agent/deposits/${id}/confirm`,{
+      method:'POST',headers:{'Content-Type':'application/json','x-telegram-id':G.tid},
+      body:JSON.stringify({})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok){
+      if(d.insufficientBalance){
+        const bb=document.getElementById('balBanner');if(bb)bb.style.display='block';
+        go('deposits');
+        toast(`⚠️ လက်ကျန်ငွေ မလောက်ပါ\nကျန်: ${K(d.agentBalance)} / လို: ${K(d.required)}\nGame Developer ကို ဆက်သွယ်ပြီး ယူနစ်ဖြည့်ပါ`,'err');
+        busy(btn,false);
+        if(rb){rb.disabled=false;}
+        // Attach card-level warning
+        const card=document.getElementById('dep-'+id);
+        if(card&&!card.querySelector('.dep-warn')){
+          const w=document.createElement('div');
+          w.className='dep-warn';
+          w.innerHTML=`<div class="dep-warn-t">⚠️ လက်ကျန်ငွေ မလောက်ပါ</div>
+            <div class="dep-warn-b">ကျန်: <b>${K(d.agentBalance)}</b> / လို: <b>${K(d.required)}</b><br>Game Developer ကို ဆက်သွယ်ပြီး ယူနစ်ဖြည့်ပါ</div>`;
+          const acts=card.querySelector('.dep-acts');
+          if(acts) acts.before(w);
+        }
+        processingDeps.delete(id);
+        return;
+      }
+      throw new Error(d.error||'Error');
+    }
+    toast('✅ ငွေဖြည့်မှု အတည်ပြုပြီ!','ok');
+    removeCard(id);
+    // Refresh balance silently
+    try{
+      G.data=await api('/api/agent/panel');
+      updateStats();
+    }catch{}
+  }catch(e){
+    toast(myerr(e.message),'err');
+    busy(btn,false);
+    if(rb) rb.disabled=false;
+  }finally{
+    processingDeps.delete(id);
+  }
+}
+
+async function rejDep(id,btn){
+  if(processingDeps.has(id)) return;
+  if(btn?.disabled) return;
+  processingDeps.add(id);
+  busy(btn,true);
+  const cb=document.getElementById('cb-'+id);
+  if(cb) cb.disabled=true;
+  try{
+    const r=await fetch(`${BACKEND}/api/agent/deposits/${id}/reject`,{
+      method:'POST',headers:{'Content-Type':'application/json','x-telegram-id':G.tid},
+      body:JSON.stringify({})
+    });
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||'Error');
+    toast('❌ ငွေဖြည့်မှု ပယ်ချပြီ','info');
+    removeCard(id);
+  }catch(e){
+    hideRejectConfirm(id);
+    toast(myerr(e.message),'err');
+    busy(btn,false);
+    if(cb) cb.disabled=false;
+  }finally{
+    processingDeps.delete(id);
+  }
+}
+
+function removeCard(id){
+  const card=document.getElementById('dep-'+id);
+  if(card){
+    card.style.opacity='0';card.style.transform='translateX(28px)';
+    setTimeout(()=>card.remove(),260);
+  }
+  setTimeout(()=>{
+    G.pc=Math.max(0,G.pc-1);
+    setBadge(G.pc);
+    const bdg=document.getElementById('hPendBdg');
+    if(bdg){bdg.textContent=G.pc;if(!G.pc)bdg.style.display='none';}
+    if(!G.pc){
+      const emp=`<div class="empty"><div class="ei">✅</div><div class="et">Pending မရှိသေးပါ</div></div>`;
+      setTimeout(()=>{
+        const dl=document.getElementById('depList');
+        if(dl&&!dl.querySelector('.dep-card'))dl.innerHTML=emp;
+        const hl=document.getElementById('hPendList');
+        if(hl&&!hl.querySelector('.dep-card'))hl.innerHTML=emp;
+      },300);
+    }
+  },270);
+}
+
+/* ══ BOXES ══ */
+function renderBoxes(){
+  const grid=document.getElementById('boxGrid');
+  if(!G.data)return;
+  const ms=G.data.milestones||{};
+  const b2=ms[2]?.claimed||false;
+  grid.innerHTML=BOX_CFG.map(cfg=>{
+    const m=ms[cfg.box]||{current:0,claimed:false};
+    const loop=cfg.loop||false;
+    const locked=loop&&!b2;
+    const pct=locked?0:Math.min(100,Math.round((m.current/cfg.people)*100));
+    const done=m.claimed&&!loop;
+    const ready=m.current>=cfg.people&&!done;
+    let cls='ms';
+    if(done)cls+=' ms-done';
+    else if(ready)cls+=' ms-ready';
+    else if(loop&&!locked)cls+=' ms-loop';
+    else if(locked)cls+=' ms-locked';
+    const fcls=loop?'fy':(done?'fg':'fp');
+    let tag='';
+    if(loop)tag=`<div class="ms-tag ms-tag-loop">♾️ LOOP</div>`;
+    else if(done)tag=`<div class="ms-tag ms-tag-done">✅</div>`;
+    let btn='';
+    if(locked)btn=`<button class="ms-btn mb-lock" disabled>🔒 Box 2 ပြီးမှ</button>`;
+    else if(done)btn=`<button class="ms-btn mb-done" disabled>✅ ပြီးပြီ</button>`;
+    else if(ready)btn=`<button class="ms-btn mb-claim" id="cl-${cfg.box}" onclick="claimBox(${cfg.box},this)"><span class="btx">🎁 ယူမည်</span><span class="bsp"></span></button>`;
+    else btn=`<button class="ms-btn mb-wait" disabled>${cfg.people-m.current} ယောက် ထပ်လို</button>`;
+    return `
+    <div class="${cls}">
+      ${tag}
+      <div class="ms-num">${cfg.label}</div>
+      <div class="ms-bonus${done?' gc':''}">${K(cfg.bonus)}</div>
+      <div class="ms-req">${cfg.people} ယောက် × ${K(cfg.perPerson)}</div>
+      <div class="ms-pb"><div class="ms-pf ${fcls}" style="width:${pct}%"></div></div>
+      <div class="ms-pt"><span>${locked?'Locked':m.current+'/'+cfg.people}</span><span>${locked?'':pct+'%'}</span></div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+async function claimBox(box,btn){
+  if(btn?.disabled)return;
+  busy(btn,true);
+  try{
+    const r=await api('/api/agent/claim-box',{method:'POST',body:JSON.stringify({box})});
+    toast(`🎉 Box ${box} ဆုကြေး ${K(r.bonus)} ရပြီ!`,'ok');
+    G.data=await api('/api/agent/panel');
+    updateStats();renderBoxes();
+  }catch(e){
+    toast(myerr(e.message),'err');
+    busy(btn,false);
+  }
+}
+
+/* ══ MEMBERS ══ */
+async function loadMems(showMsg=false){
+  const el=document.getElementById('memList');
+  el.innerHTML=`<div class="empty"><div class="ei">👥</div><div class="et">Loading...</div></div>`;
+  try{
+    const d=await api('/api/agent/referrals');
+    if(!d.referrals.length){
+      el.innerHTML=`<div class="empty"><div class="ei">👥</div><div class="et">Member မရှိသေးပါ<br><small style="opacity:.6;">Referral Link မျှဝေပါ</small></div></div>`;
+      return;
+    }
+    el.innerHTML=d.referrals.map(u=>`
+      <div class="mem">
+        <div class="mem-av">${init1(u.name)}</div>
+        <div class="mem-inf">
+          <div class="mem-nm">${esc(u.name)}</div>
+          <div class="mem-mt">@${esc(u.username||'—')} • ${new Date(u.joinedAt).toLocaleDateString()}</div>
+        </div>
+        <div class="mem-bl">${K(u.balance)}</div>
+      </div>`).join('');
+    if(showMsg) toast(`👥 ${d.total} ဦး ရှိသည်`,'info');
+  }catch(e){
+    el.innerHTML=`<div class="empty"><div class="ei">❌</div><div class="et">${esc(myerr(e.message))}</div></div>`;
+  }
+}
+
+/* ══ REFRESH ══ */
+async function refreshAll(){
+  try{
+    G.data=await api('/api/agent/panel');
+    updateStats();renderBoxes();
+    toast('🔄 Refresh ပြီးပါပြီ','ok');
+  }catch(e){toast(myerr(e.message),'err');}
+}
+
+/* ══ START ══ */
+window.addEventListener('DOMContentLoaded',()=>{
+  if(window.Telegram?.WebApp) init();
+  else setTimeout(init,300);
+});
+</script>
+</body>
+</html>

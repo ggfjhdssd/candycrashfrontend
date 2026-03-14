@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🍭 Candy Crush — ကစားမည်</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pink:#ff6eb4;--dpink:#e91e8c;--purple:#9b59b6;--dpurple:#6c3483;
+  --yellow:#ffd700;--orange:#ff8c00;--green:#00c853;--blue:#2196f3;
+  --white:#fff;--light:rgba(255,255,255,0.92);--overlay:rgba(30,0,50,0.55);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:url('assets/background.jpg') center/cover no-repeat fixed;
+  min-height:100vh;
+  position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:linear-gradient(160deg,rgba(180,0,120,0.45) 0%,rgba(80,0,100,0.55) 50%,rgba(30,0,80,0.6) 100%);
+  pointer-events:none;
+}
+
+/* ---- LOADER ---- */
+#ldr{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(135deg,#ff6eb4,#9b59b6);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity .4s;
+}
+#ldr .ldr-logo{font-size:3rem;}
+#ldr .ldr-title{font-size:1.6rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.ring{width:38px;height:38px;border:4px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- SCREENS ---- */
+#screen-search,#screen-game,#screen-result{
+  position:fixed;inset:0;z-index:1;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  padding:12px;
+}
+#screen-search.show,#screen-game.show,#screen-result.show{display:flex;}
+
+/* ---- SEARCH SCREEN ---- */
+#screen-search{
+  gap:20px;
+}
+.search-card{
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(20px);
+  border:2px solid rgba(255,255,255,0.3);
+  border-radius:24px;
+  padding:30px 24px;
+  text-align:center;
+  width:100%;max-width:340px;
+  box-shadow:0 8px 40px rgba(0,0,0,0.3);
+}
+.search-candy-anim{font-size:3rem;animation:bounce 1s ease-in-out infinite alternate;}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.search-title{font-size:1.4rem;font-weight:900;color:#fff;margin:12px 0 6px;text-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.search-sub{font-size:0.9rem;color:rgba(255,255,255,0.8);}
+.search-dots{display:flex;gap:7px;justify-content:center;margin:16px 0;}
+.dot{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite;}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,100%{transform:scale(.7);opacity:.4}50%{transform:scale(1.2);opacity:1}}
+.search-info{
+  background:rgba(255,255,255,0.12);border-radius:12px;padding:12px;
+  font-size:0.82rem;color:rgba(255,255,255,0.9);line-height:1.8;
+}
+.btn-cancel{
+  background:rgba(255,255,255,0.2);border:2px solid rgba(255,255,255,0.4);
+  color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;
+  border-radius:14px;padding:13px 28px;cursor:pointer;width:100%;max-width:340px;
+  transition:all .2s;
+}
+.btn-cancel:active{transform:scale(.96);}
+
+/* ---- GAME SCREEN ---- */
+#screen-game{
+  padding:6px 8px 8px;
+  justify-content:flex-start;
+  overflow:hidden;
+}
+
+/* Top bar */
+.top-bar{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:6px;width:100%;max-width:420px;
+  margin-bottom:6px;
+  position:relative;z-index:2;
+}
+
+/* Score panels */
+.score-panel{
+  background:rgba(255,255,255,0.18);
+  backdrop-filter:blur(16px);
+  border:2px solid rgba(255,255,255,0.35);
+  border-radius:16px;
+  padding:8px 10px;
+  text-align:center;
+  min-width:0;
+}
+.score-panel.mine{border-color:rgba(255,215,0,0.6);background:rgba(255,215,0,0.18);}
+.score-panel.opponent{border-color:rgba(255,105,180,0.6);background:rgba(255,105,180,0.15);}
+.sp-name{font-size:9px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;letter-spacing:.06em;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.sp-score{font-size:1.5rem;font-weight:900;color:#fff;line-height:1;text-shadow:0 2px 6px rgba(0,0,0,0.4);}
+.sp-score.mine{color:#ffd700;}
+.sp-score.opp{color:#ff9de2;}
+.sp-label{font-size:8px;color:rgba(255,255,255,0.6);}
+
+/* Timer */
+.timer-box{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(16px);
+  border:2px solid rgba(255,255,255,0.3);
+  border-radius:14px;
+  padding:6px 12px;
+}
+.timer-num{font-size:1.3rem;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.5);font-variant-numeric:tabular-nums;}
+.timer-num.urgent{color:#ff6b6b;animation:urgentPulse .5s ease-in-out infinite alternate;}
+@keyframes urgentPulse{from{transform:scale(1)}to{transform:scale(1.1)}}
+.timer-label{font-size:7px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:.08em;}
+
+/* Frame decorations */
+.game-frame{
+  position:relative;width:100%;max-width:420px;
+  flex:1;display:flex;flex-direction:column;
+  min-height:0;
+}
+.frame-img{
+  position:absolute;z-index:3;pointer-events:none;
+  width:100%;height:100%;
+  object-fit:fill;
+  opacity:0.6;
+  top:0;left:0;
+}
+
+/* Board container */
+.board-wrap{
+  position:relative;z-index:4;
+  flex:1;display:flex;flex-direction:column;
+  min-height:0;
+  padding:6px;
+}
+
+/* Candy Grid */
+#candy-grid{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:3px;
+  width:100%;
+  aspect-ratio:1;
+  max-height:calc(100vh - 240px);
+}
+.candy-cell{
+  aspect-ratio:1;
+  border-radius:8px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.12);
+  border:1.5px solid rgba(255,255,255,0.15);
+  transition:transform .12s,box-shadow .12s,background .12s;
+  overflow:hidden;
+  position:relative;
+  user-select:none;
+}
+.candy-cell:active{transform:scale(.9);}
+.candy-cell.selected{
+  background:rgba(255,215,0,0.35);
+  border-color:#ffd700;
+  box-shadow:0 0 14px rgba(255,215,0,0.7),inset 0 0 8px rgba(255,215,0,0.3);
+  transform:scale(1.08);
+}
+.candy-cell.hint-swap{
+  animation:hintSwap .3s ease-in-out infinite alternate;
+}
+@keyframes hintSwap{from{transform:scale(1)}to{transform:scale(1.06)}}
+.candy-cell.exploding{
+  animation:explode .35s ease-out forwards;
+}
+@keyframes explode{
+  0%{transform:scale(1.1);opacity:1;}
+  50%{transform:scale(1.4);opacity:.6;background:radial-gradient(circle,#fff,#ffd700);}
+  100%{transform:scale(0);opacity:0;}
+}
+.candy-cell.falling{
+  animation:fallIn .28s cubic-bezier(.4,1.6,.6,1) both;
+}
+@keyframes fallIn{from{transform:translateY(-40px);opacity:0}to{transform:translateY(0);opacity:1}}
+.candy-img{
+  width:90%;height:90%;
+  object-fit:contain;
+  pointer-events:none;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  transition:transform .1s;
+}
+.candy-cell:not(.selected):not(.exploding):hover .candy-img{transform:scale(1.1);}
+
+/* Opponent mini board */
+.opp-section{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,0.12);
+  backdrop-filter:blur(12px);
+  border:1.5px solid rgba(255,105,180,0.3);
+  border-radius:14px;
+  padding:8px 12px;
+  margin-top:6px;
+  width:100%;max-width:420px;
+  position:relative;z-index:2;
+}
+.opp-label{font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);white-space:nowrap;}
+.opp-name-display{font-size:12px;font-weight:800;color:#ff9de2;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.opp-score-big{font-size:1.1rem;font-weight:900;color:#ff9de2;white-space:nowrap;}
+.opp-status{font-size:9px;color:rgba(255,255,255,0.5);}
+
+/* Jerry mascot */
+#jerry-mascot{
+  position:fixed;bottom:70px;right:8px;
+  width:52px;height:52px;
+  z-index:5;
+  pointer-events:none;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  animation:jerryBounce 2s ease-in-out infinite;
+}
+@keyframes jerryBounce{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(5deg) scale(1.05)}}
+
+/* ---- RESULT SCREEN ---- */
+#screen-result{
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(12px);
+}
+.result-card{
+  background:linear-gradient(135deg,rgba(40,0,60,0.95),rgba(80,0,80,0.95));
+  border:2px solid rgba(255,255,255,0.2);
+  border-radius:28px;
+  padding:32px 24px;
+  text-align:center;
+  width:100%;max-width:320px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  animation:resultPop .45s cubic-bezier(.16,1,.3,1);
+}
+@keyframes resultPop{from{opacity:0;transform:scale(.85) translateY(30px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.res-emoji{font-size:4rem;margin-bottom:10px;display:block;}
+.res-title{font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:6px;text-shadow:0 3px 10px rgba(0,0,0,0.5);}
+.res-title.win{background:linear-gradient(135deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.res-title.lose{color:#ff9de2;}
+.res-title.draw{color:#a78bfa;}
+.res-scores{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin:16px 0;
+}
+.rs-panel{
+  background:rgba(255,255,255,0.1);border-radius:12px;padding:10px;
+}
+.rs-name{font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.rs-score{font-size:1.5rem;font-weight:900;color:#fff;}
+.rs-score.highlight{color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.5);}
+.res-prize{
+  background:linear-gradient(135deg,rgba(255,215,0,0.2),rgba(255,140,0,0.15));
+  border:1.5px solid rgba(255,215,0,0.4);
+  border-radius:12px;padding:10px;margin-bottom:16px;
+  font-size:0.9rem;color:#ffd700;font-weight:700;
+}
+.res-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.res-btn{
+  font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;
+  border:none;border-radius:12px;padding:12px;cursor:pointer;
+  transition:all .16s;color:#fff;
+}
+.res-btn:active{transform:scale(.96);}
+.res-btn.play-again{background:linear-gradient(135deg,#e91e8c,#9b59b6);box-shadow:0 4px 16px rgba(233,30,140,0.4);}
+.res-btn.go-home{background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.3);}
+
+/* Fake disconnect overlay */
+#fake-disconnect{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+#fake-disconnect.show{display:flex;}
+.fd-card{background:rgba(30,0,50,0.9);border:2px solid rgba(255,105,180,0.3);border-radius:20px;padding:28px 24px;text-align:center;max-width:280px;}
+.fd-icon{font-size:2.5rem;margin-bottom:12px;}
+.fd-text{color:#fff;font-size:1rem;font-weight:700;line-height:1.5;}
+
+/* Score pop animation */
+.score-pop{
+  position:fixed;pointer-events:none;z-index:500;
+  font-size:1.2rem;font-weight:900;color:#ffd700;
+  text-shadow:0 2px 8px rgba(0,0,0,0.6);
+  animation:scorePopAnim .8s ease-out forwards;
+}
+@keyframes scorePopAnim{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.4)}}
+
+/* Emote display */
+#emote-display{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:3rem;z-index:50;pointer-events:none;
+  animation:emoteAnim 1.5s ease-out forwards;
+  display:none;
+}
+@keyframes emoteAnim{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.3)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-80%) scale(.8)}}
+
+/* Toast */
+#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%) translateY(-80px);z-index:9999;transition:all .35s cubic-bezier(.68,-.55,.265,1.55);opacity:0;}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+.ti{padding:10px 20px;border-radius:100px;font-size:13px;font-weight:700;backdrop-filter:blur(20px);display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.tok{background:rgba(0,200,83,.9);color:#fff;}
+.terr{background:rgba(239,68,68,.9);color:#fff;}
+
+/* bg frame overlay */
+.bg-frame{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;object-fit:fill;opacity:0.35;}
+</style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="ldr">
+  <div class="ldr-logo">🍭</div>
+  <div class="ldr-title">Candy Crush</div>
+  <div class="ring"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast"><div class="ti" id="ti"></div></div>
+
+<!-- Emote display -->
+<div id="emote-display"></div>
+
+<!-- Fake disconnect overlay -->
+<div id="fake-disconnect">
+  <div class="fd-card">
+    <div class="fd-icon">📡</div>
+    <div class="fd-text" id="fd-msg">ချိတ်ဆက်မှု ပြဿနာ...</div>
+    <div class="ring" style="margin:12px auto 0"></div>
+  </div>
+</div>
+
+<!-- SEARCH SCREEN -->
+<div id="screen-search">
+  <div class="search-card">
+    <div class="search-candy-anim">🍭</div>
+    <div class="search-title">ဆော့ဖော် ရှာနေသည်...</div>
+    <div class="search-sub">Multiplayer ကစားနည်းရှာနေပါသည်</div>
+    <div class="search-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div class="search-info">
+      💰 ဝင်ကြေး: <b>500 MMK</b><br>
+      🏆 နိုင်ရင်: <b>800 MMK</b><br>
+      ⏱ ကစားချိန်: <b>3 မိနစ်</b>
+    </div>
+  </div>
+  <button class="btn-cancel" onclick="cancelSearch()">❌ ဖျက်သိမ်းမည်</button>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="screen-game">
+  <!-- Top bar: scores + timer -->
+  <div class="top-bar">
+    <div class="score-panel mine">
+      <div class="sp-name" id="my-name">ကိုယ်</div>
+      <div class="sp-score mine" id="my-score-val">0</div>
+      <div class="sp-label">မှတ်မှတ်</div>
+    </div>
+    <div class="timer-box">
+      <div class="timer-num" id="timer-display">3:00</div>
+      <div class="timer-label">⏱</div>
+    </div>
+    <div class="score-panel opponent">
+      <div class="sp-name" id="opp-name">ဆော့ဖော်</div>
+      <div class="sp-score opp" id="opp-score-val">0</div>
+      <div class="sp-label">ဆော့ဖော်</div>
+    </div>
+  </div>
+
+  <!-- Game frame + board -->
+  <div class="game-frame">
+    <img class="frame-img" src="assets/bg1.png" alt="" onerror="this.style.display='none'">
+    <div class="board-wrap">
+      <div id="candy-grid"></div>
+    </div>
+  </div>
+
+  <!-- Opponent status bar -->
+  <div class="opp-section">
+    <span class="opp-label">🍬</span>
+    <span class="opp-name-display" id="opp-name-bar">ဆော့ဖော်</span>
+    <span class="opp-score-big" id="opp-score-bar">0</span>
+    <span class="opp-status" id="opp-status">●</span>
+  </div>
+</div>
+
+<!-- Jerry mascot (loads if file exists) -->
+<img id="jerry-mascot" src="assets/jerry.png" alt="Jerry" onerror="this.style.display='none'">
+
+<!-- RESULT SCREEN -->
+<div id="screen-result">
+  <div class="result-card">
+    <span class="res-emoji" id="res-emoji">🏆</span>
+    <div class="res-title" id="res-title">ကစားပြီး!</div>
+    <div class="res-scores">
+      <div class="rs-panel">
+        <div class="rs-name" id="res-my-name">ကိုယ်</div>
+        <div class="rs-score" id="res-my-score">0</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.4);">မှတ်</div>
+      </div>
+      <div class="rs-panel">
+        <div class="rs-name" id="res-opp-name">ဆော့ဖော်</div>
+        <div class="rs-score" id="res-opp-score">0</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.4);">မှတ်</div>
+      </div>
+    </div>
+    <div class="res-prize" id="res-prize">🏆 ငွေ: +800 MMK</div>
+    <div class="res-btns">
+      <button class="res-btn play-again" onclick="goToSearch()">🍭 ထပ်ကစား</button>
+      <button class="res-btn go-home" onclick="goHome()">🏠 ပင်မ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== CONFIG ==========
+const BACKEND = 'https://candycrushbackend.onrender.com'; // ← your Render URL
+const BOARD_SIZE = 8;
+const CANDY_COUNT = 9;
+const GAME_DURATION = 180; // seconds
+
+// ========== STATE ==========
+let socket = null;
+let myUserId = null;
+let myUserName = '';
+let myGameId = null;
+let opponentId = null;
+let opponentName = '';
+let myScore = 0;
+let opponentScore = 0;
+let board = []; // 2D array [row][col] = candy type 1-9
+let selected = null; // {r, c}
+let gameActive = false;
+let timerInterval = null;
+let timeLeft = GAME_DURATION;
+let isProcessing = false; // prevent multi-click during animation
+let tg = window.Telegram?.WebApp;
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', async () => {
+  if (tg) { tg.expand(); tg.setHeaderColor('#6c3483'); }
+
+  // Auth
+  try {
+    const res = await fetch(`${BACKEND}/api/auth`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ initData: tg?.initData || '', telegramId: tg?.initDataUnsafe?.user?.id })
+    });
+    const data = await res.json();
+    if (data.error) { showToast(data.error, true); return; }
+    myUserId = data.telegramId;
+    myUserName = data.firstName || data.username || `User${myUserId}`;
+  } catch(e) {
+    showToast('Server ချိတ်ဆက်မရပါ', true); return;
+  }
+
+  hideLdr();
+  initSocket();
+
+  // Check if joining via notification
+  const params = new URLSearchParams(window.location.search);
+  const joinId = params.get('join');
+  startSearch(joinId);
+});
+
+function hideLdr() {
+  const l = document.getElementById('ldr');
+  l.style.opacity = '0';
+  setTimeout(() => l.style.display = 'none', 400);
+}
+
+// ========== SOCKET ==========
+function initSocket() {
+  const joinParam = new URLSearchParams(window.location.search).get('join');
+  socket = io(BACKEND, {
+    transports: ['websocket','polling'],
+    query: { join: joinParam || '' }
+  });
+
+  socket.on('connect', () => console.log('Socket connected'));
+
+  socket.on('waitingForPlayer', ({ gameId, searchTimeout }) => {
+    myGameId = gameId;
+    showScreen('search');
+  });
+
+  socket.on('gameStarted', (data) => {
+    myGameId = data.gameId;
+    opponentId = data.opponentId;
+    opponentName = data.players?.[data.opponentId] || data.opponentName || 'ဆော့ဖော်';
+    myUserName = data.players?.[data.myId] || myUserName;
+    timeLeft = data.duration || GAME_DURATION;
+
+    startGame();
+  });
+
+  socket.on('gameResumed', (data) => {
+    myGameId = data.gameId;
+    opponentId = data.opponentId;
+    opponentName = data.players?.[data.opponentId] || 'ဆော့ဖော်';
+    timeLeft = Math.max(0, Math.round((data.duration * 1000 - data.elapsedMs) / 1000));
+    myScore = data.myScore || 0;
+    opponentScore = data.opponentScore || 0;
+
+    startGame();
+  });
+
+  socket.on('opponentScore', ({ score }) => {
+    opponentScore = score;
+    updateOpponentScore();
+  });
+
+  socket.on('gameOver', (data) => {
+    gameActive = false;
+    clearInterval(timerInterval);
+    const myFinalScore = myScore;
+    const oppFinalScore = data.scores?.[opponentId] || opponentScore;
+    showResult(data.winner, myFinalScore, oppFinalScore, data.reason);
+  });
+
+  socket.on('searchCancelled', () => {
+    showScreen(null);
+    goHome();
+  });
+
+  socket.on('insufficientBalance', ({ balance, required }) => {
+    hideLdr();
+    showToast(`ငွေမလုံပါ (${balance}/${required} MMK)`, true);
+    setTimeout(goHome, 1800);
+  });
+
+  socket.on('fakeDisconnect', ({ message }) => {
+    const fd = document.getElementById('fake-disconnect');
+    document.getElementById('fd-msg').textContent = message;
+    fd.classList.add('show');
+    gameActive = false;
+  });
+
+  socket.on('emoteReceived', ({ emote }) => {
+    const el = document.getElementById('emote-display');
+    el.textContent = emote;
+    el.style.display = 'block';
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = '';
+    setTimeout(() => el.style.display = 'none', 1600);
+  });
+
+  socket.on('searchUpdate', ({ message }) => {
+    // Optional: show message
+  });
+
+  socket.on('error', ({ msg }) => {
+    showToast(msg, true);
+  });
+}
+
+// ========== SEARCH ==========
+function startSearch(joinId) {
+  if (!socket || !myUserId) return;
+  showScreen('search');
+  socket.emit('findGame', { userId: myUserId });
+}
+
+function cancelSearch() {
+  if (socket && myGameId) {
+    socket.emit('cancelSearch', { userId: myUserId });
+  }
+  goHome();
+}
+
+// ========== GAME INIT ==========
+function startGame() {
+  // Set names
+  document.getElementById('my-name').textContent = myUserName;
+  document.getElementById('opp-name').textContent = opponentName;
+  document.getElementById('opp-name-bar').textContent = opponentName;
+  document.getElementById('my-score-val').textContent = '0';
+  document.getElementById('opp-score-val').textContent = '0';
+  document.getElementById('opp-score-bar').textContent = '0';
+
+  // Generate board
+  board = generateBoard();
+  selected = null;
+  gameActive = true;
+  isProcessing = false;
+  myScore = 0;
+  opponentScore = 0;
+
+  renderBoard();
+  startTimer();
+  showScreen('game');
+}
+
+// ========== BOARD GENERATION ==========
+function generateBoard() {
+  const b = [];
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    b.push([]);
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      let candy;
+      let tries = 0;
+      do {
+        candy = Math.floor(Math.random() * CANDY_COUNT) + 1;
+        tries++;
+      } while (tries < 30 && (
+        (c >= 2 && b[r][c-1] === candy && b[r][c-2] === candy) ||
+        (r >= 2 && b[r-1][c] === candy && b[r-2][c] === candy)
+      ));
+      b[r].push(candy);
+    }
+  }
+  return b;
+}
+
+// ========== RENDER ==========
+function renderBoard(fallingCells = new Set()) {
+  const grid = document.getElementById('candy-grid');
+  grid.innerHTML = '';
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'candy-cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+
+      if (board[r][c] > 0) {
+        const img = document.createElement('img');
+        img.src = `assets/p${board[r][c]}.png`;
+        img.className = 'candy-img';
+        img.draggable = false;
+        cell.appendChild(img);
+      }
+
+      if (selected && selected.r === r && selected.c === c) {
+        cell.classList.add('selected');
+      }
+
+      if (fallingCells.has(`${r},${c}`)) {
+        cell.classList.add('falling');
+      }
+
+      if (!isProcessing && gameActive) {
+        cell.addEventListener('click', () => handleCellClick(r, c));
+        cell.addEventListener('touchend', (e) => { e.preventDefault(); handleCellClick(r, c); }, { passive: false });
+      }
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+// ========== CLICK HANDLER ==========
+function handleCellClick(r, c) {
+  if (!gameActive || isProcessing) return;
+  if (board[r][c] === 0) return;
+
+  if (!selected) {
+    selected = { r, c };
+    renderBoard();
+    return;
+  }
+
+  if (selected.r === r && selected.c === c) {
+    selected = null;
+    renderBoard();
+    return;
+  }
+
+  // Check adjacency
+  const dr = Math.abs(selected.r - r);
+  const dc = Math.abs(selected.c - c);
+
+  if (dr + dc === 1) {
+    // Adjacent — try swap
+    const from = { ...selected };
+    selected = null;
+    doSwap(from.r, from.c, r, c);
+  } else {
+    // Not adjacent — select new cell
+    selected = { r, c };
+    renderBoard();
+  }
+}
+
+// ========== SWAP LOGIC ==========
+async function doSwap(r1, c1, r2, c2) {
+  if (isProcessing) return;
+  isProcessing = true;
+
+  // Visual swap preview
+  [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+  renderBoard();
+
+  const matches = findMatches();
+  if (matches.length === 0) {
+    // Invalid — swap back
+    await sleep(180);
+    [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    renderBoard();
+    isProcessing = false;
+    return;
+  }
+
+  // Valid — process cascade
+  await processAllMatches();
+  isProcessing = false;
+}
+
+// ========== MATCH DETECTION ==========
+function findMatches() {
+  const toRemove = new Set();
+
+  // Horizontal
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE - 2; c++) {
+      const t = board[r][c];
+      if (t === 0) continue;
+      if (t === board[r][c+1] && t === board[r][c+2]) {
+        let len = 3;
+        while (c + len < BOARD_SIZE && board[r][c+len] === t) len++;
+        for (let i = 0; i < len; i++) toRemove.add(`${r},${c+i}`);
+        c += len - 1;
+      }
+    }
+  }
+
+  // Vertical
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    for (let r = 0; r < BOARD_SIZE - 2; r++) {
+      const t = board[r][c];
+      if (t === 0) continue;
+      if (t === board[r+1][c] && t === board[r+2][c]) {
+        let len = 3;
+        while (r + len < BOARD_SIZE && board[r+len][c] === t) len++;
+        for (let i = 0; i < len; i++) toRemove.add(`${r+i},${c}`);
+        r += len - 1;
+      }
+    }
+  }
+
+  return [...toRemove].map(s => { const [r,c] = s.split(',').map(Number); return {r,c}; });
+}
+
+// ========== PROCESS MATCHES CASCADE ==========
+async function processAllMatches() {
+  let totalPts = 0;
+  let combo = 0;
+
+  while (true) {
+    const matches = findMatches();
+    if (matches.length === 0) break;
+
+    combo++;
+    const pts = matches.length * 10 * (combo > 1 ? combo : 1);
+    totalPts += pts;
+
+    // Mark exploding
+    const explodingSet = new Set(matches.map(m => `${m.r},${m.c}`));
+    renderBoardWithExploding(explodingSet);
+    await sleep(350);
+
+    // Remove
+    for (const {r,c} of matches) board[r][c] = 0;
+
+    // Apply gravity
+    const newlyFallen = applyGravity();
+    renderBoard(newlyFalled(newlyFallen));
+    await sleep(280);
+  }
+
+  if (totalPts > 0) {
+    myScore += totalPts;
+    updateMyScore();
+    showScorePop(totalPts);
+
+    // Send to server
+    if (socket && myGameId) {
+      socket.emit('scoreUpdate', { gameId: myGameId, score: myScore });
+    }
+  }
+}
+
+function newlyFalled(cells) {
+  return new Set(cells.map(c => `${c.r},${c.c}`));
+}
+
+function renderBoardWithExploding(explodingSet) {
+  const grid = document.getElementById('candy-grid');
+  grid.innerHTML = '';
+  for (let r = 0; r < BOARD_SIZE; r++) {
+    for (let c = 0; c < BOARD_SIZE; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'candy-cell';
+      if (board[r][c] > 0) {
+        const img = document.createElement('img');
+        img.src = `assets/p${board[r][c]}.png`;
+        img.className = 'candy-img';
+        img.draggable = false;
+        cell.appendChild(img);
+      }
+      if (explodingSet.has(`${r},${c}`)) cell.classList.add('exploding');
+      grid.appendChild(cell);
+    }
+  }
+}
+
+// ========== GRAVITY ==========
+function applyGravity() {
+  const fell = [];
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    let emptyRow = BOARD_SIZE - 1;
+    for (let r = BOARD_SIZE - 1; r >= 0; r--) {
+      if (board[r][c] !== 0) {
+        if (emptyRow !== r) {
+          board[emptyRow][c] = board[r][c];
+          board[r][c] = 0;
+          fell.push({ r: emptyRow, c });
+        }
+        emptyRow--;
+      }
+    }
+    for (let r = emptyRow; r >= 0; r--) {
+      board[r][c] = Math.floor(Math.random() * CANDY_COUNT) + 1;
+      fell.push({ r, c });
+    }
+  }
+  return fell;
+}
+
+// ========== SCORE UI ==========
+function updateMyScore() {
+  document.getElementById('my-score-val').textContent = myScore;
+}
+
+function updateOpponentScore() {
+  document.getElementById('opp-score-val').textContent = opponentScore;
+  document.getElementById('opp-score-bar').textContent = opponentScore;
+  document.getElementById('opp-status').textContent = '🟢';
+}
+
+function showScorePop(pts) {
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = `+${pts}`;
+  el.style.left = Math.random() * 60 + 20 + '%';
+  el.style.top = Math.random() * 30 + 30 + '%';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 850);
+}
+
+// ========== TIMER ==========
+function startTimer() {
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      gameActive = false;
+      // Server will emit gameOver after its own timer
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(Math.max(0, timeLeft) / 60);
+  const s = Math.max(0, timeLeft) % 60;
+  const el = document.getElementById('timer-display');
+  el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if (timeLeft <= 30) el.classList.add('urgent');
+  else el.classList.remove('urgent');
+}
+
+// ========== RESULT ==========
+function showResult(winner, myFinal, oppFinal, reason) {
+  clearInterval(timerInterval);
+
+  const isWin = winner == myUserId;
+  const isDraw = winner === -1 || winner == null;
+  const isLose = !isWin && !isDraw;
+
+  document.getElementById('res-emoji').textContent = isWin ? '🏆' : isDraw ? '🤝' : '😢';
+  const titleEl = document.getElementById('res-title');
+  titleEl.textContent = isWin ? 'ဝင်ငွေ ရပြီ! 🎉' : isDraw ? 'သရေ!' : 'ရှုံးသွားသည်';
+  titleEl.className = 'res-title ' + (isWin ? 'win' : isDraw ? 'draw' : 'lose');
+
+  document.getElementById('res-my-name').textContent = myUserName;
+  document.getElementById('res-opp-name').textContent = opponentName;
+
+  const myScoreEl = document.getElementById('res-my-score');
+  const oppScoreEl = document.getElementById('res-opp-score');
+  myScoreEl.textContent = myFinal;
+  oppScoreEl.textContent = oppFinal;
+  myScoreEl.className = 'rs-score' + (isWin ? ' highlight' : '');
+  oppScoreEl.className = 'rs-score' + (!isWin && !isDraw ? ' highlight' : '');
+
+  const prizeEl = document.getElementById('res-prize');
+  if (isWin) prizeEl.textContent = '🏆 +800 MMK ရွှေငွေ ရပြီ!';
+  else if (isDraw) prizeEl.textContent = '🤝 ငွေ 250 MMK ပြန်ရမည်';
+  else prizeEl.textContent = reason === 'disconnect' ? '📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်' : '😢 ဆက်ကြိုးစားပါ!';
+
+  showScreen('result');
+}
+
+// ========== NAVIGATION ==========
+function showScreen(name) {
+  ['search','game','result'].forEach(s => {
+    const el = document.getElementById(`screen-${s}`);
+    if (el) el.classList.remove('show');
+  });
+  if (name) {
+    const el = document.getElementById(`screen-${name}`);
+    if (el) el.classList.add('show');
+  }
+}
+
+function goToSearch() {
+  myScore = 0; opponentScore = 0;
+  myGameId = null; selected = null;
+  clearInterval(timerInterval);
+  showScreen('search');
+  if (socket) socket.emit('findGame', { userId: myUserId });
+}
+
+function goHome() {
+  if (tg) { tg.close(); }
+  else { window.location.href = '/'; }
+}
+
+// ========== UTILS ==========
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+let toastTimer = null;
+function showToast(msg, isErr = false) {
+  const toast = document.getElementById('toast');
+  const ti = document.getElementById('ti');
+  ti.textContent = msg;
+  ti.className = 'ti ' + (isErr ? 'terr' : 'tok');
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
