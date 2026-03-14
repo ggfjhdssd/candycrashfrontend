@@ -376,22 +376,27 @@ const PTS_CANDY   = 10;
 
 /* ══════════════════════════════════════════════════════
    ██ WEB AUDIO ENGINE ██
-   Uses AudioContext + fetch to decode audio files.
-   This bypasses MIME-type restrictions for .ogg.ogx files
-   because decodeAudioData() reads raw binary, not MIME.
+   Dual strategy:
+   • Background music → HTMLAudioElement (loop-safe, no memory leak)
+   • SFX → AudioContext + fetch+decodeAudioData (MIME-bypass, low latency)
 ══════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────
+   AUDIO FILE MAP  (all .ogg.ogx renamed → .ogg)
+   Strategy: HTMLAudioElement for bg loop (memory-safe),
+             fetch+decodeAudioData for SFX (MIME-bypass)
+───────────────────────────────────────────────────── */
 const AudioFiles = {
-  bg:      'audio/bgmusic.mp3',
-  swap:    'audio/Switch_sound1.ogg.ogx',
-  invalid: 'audio/Negative_switch_sound1.ogg.ogx',
-  match:   'audio/Candy_land4.ogg.ogx',
-  combo:   'audio/Combo_sound3.ogg.ogx',
-  btn:     'audio/Button_press.ogg.ogx',
-  win:     'audio/Win.ogg.ogx',
-  lose:    'audio/Lose.ogg.ogx',
-  twarn:   'audio/Time_warning.ogg.ogx',
+  bg:      'audio/bgmusic.mp3',          // ← MP3, HTMLAudio loop
+  swap:    'audio/Switch_sound1.ogg',
+  invalid: 'audio/Negative_switch_sound1.ogg',
+  match:   'audio/Candy_land4.ogg',
+  combo:   'audio/Combo_sound3.ogg',
+  btn:     'audio/Button_press.ogg',
+  win:     'audio/Win.ogg',
+  lose:    'audio/Lose.ogg',
+  twarn:   'audio/Time_warning.ogg',
   five:    'audio/5_seconds_left_flash_version.wav',
-  strip:   'audio/Striped_candy_created1.ogx',
+  strip:   'audio/Striped_candy_created1.ogg',
 };
 const AudioVolume = {
   bg:.32, swap:.75, invalid:.65, match:.75,
@@ -399,80 +404,78 @@ const AudioVolume = {
   twarn:.72, five:.82, strip:.72,
 };
 
-let _ctx = null;
-let _bufs = {};
-let _bgSrc = null;
-let _bgGain = null;
-let _sfxGain = null;
-let _muted = false;
-let _unlocked = false;
-let _loading = false;
+// ── Audio state ──
+let _ctx      = null;   // Web AudioContext (SFX)
+let _bufs     = {};     // decoded AudioBuffers keyed by id
+let _bgEl     = null;   // HTMLAudioElement for bg loop
+let _muted    = false;
+let _ready    = false;  // SFX buffers loaded
+let _initing  = false;
 
-// Create AudioContext and load all sounds (called on first user gesture)
+// ── Init: create AudioContext + decode all SFX in parallel ──
+// Called on first user gesture (mobile requires gesture before audio)
 async function initAudio() {
-  if (_ctx || _loading) return;
-  _loading = true;
+  if (_ctx || _initing) return;
+  _initing = true;
   try {
     _ctx = new (window.AudioContext || window.webkitAudioContext)();
-    await _ctx.resume();
+    if (_ctx.state === 'suspended') await _ctx.resume();
 
-    _bgGain  = _ctx.createGain(); _bgGain.gain.value  = AudioVolume.bg;  _bgGain.connect(_ctx.destination);
-    _sfxGain = _ctx.createGain(); _sfxGain.gain.value = 1.0;             _sfxGain.connect(_ctx.destination);
+    // Load SFX via fetch+decodeAudioData — works for ANY extension (.ogg, .ogx, .wav)
+    // because decodeAudioData reads raw bytes, not MIME type
+    const sfxKeys = Object.keys(AudioFiles).filter(k => k !== 'bg');
+    await Promise.allSettled(sfxKeys.map(async id => {
+      try {
+        const res  = await fetch(AudioFiles[id]);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const buf  = await res.arrayBuffer();
+        _bufs[id]  = await _ctx.decodeAudioData(buf);
+        console.log('[SFX] loaded:', id);
+      } catch(e) {
+        console.warn('[SFX] skip:', id, e.message);
+      }
+    }));
 
-    // Load all audio files in parallel
-    await Promise.all(
-      Object.entries(AudioFiles).map(async ([id, url]) => {
-        try {
-          const resp = await fetch(url);
-          const arr  = await resp.arrayBuffer();
-          _bufs[id]  = await _ctx.decodeAudioData(arr);
-        } catch(e) {
-          console.warn('[Audio] Failed to load:', id, url, e.message);
-        }
-      })
-    );
-    _unlocked = true;
-    console.log('[Audio] Loaded:', Object.keys(_bufs).join(', '));
+    // Background music via HTMLAudioElement (reliable loop on mobile)
+    _bgEl = new Audio(AudioFiles.bg);
+    _bgEl.loop    = true;
+    _bgEl.volume  = AudioVolume.bg;
+    _bgEl.preload = 'auto';
+
+    _ready = true;
+    console.log('[Audio] ready. SFX:', Object.keys(_bufs).join(', '));
   } catch(e) {
-    console.warn('[Audio] init failed:', e);
+    console.warn('[Audio] init error:', e);
   }
-  _loading = false;
+  _initing = false;
 }
 
-// Play a one-shot SFX
+// ── Play SFX (one-shot, non-blocking) ──
 function sfx(id) {
   if (_muted || !_ctx || !_bufs[id]) return;
   try {
-    const src = _ctx.createBufferSource();
+    const src  = _ctx.createBufferSource();
     src.buffer = _bufs[id];
     const gain = _ctx.createGain();
     gain.gain.value = AudioVolume[id] ?? 0.75;
     src.connect(gain);
-    gain.connect(_sfxGain);
+    gain.connect(_ctx.destination);
     src.start(0);
   } catch(e) {}
 }
 
-// Start background music loop
+// ── Background music ──
 function bgPlay() {
-  if (_muted || !_ctx || !_bufs.bg) return;
-  bgStop();
-  try {
-    _bgSrc = _ctx.createBufferSource();
-    _bgSrc.buffer = _bufs.bg;
-    _bgSrc.loop = true;
-    _bgSrc.connect(_bgGain);
-    _bgSrc.start(0);
-  } catch(e) {}
+  if (_muted || !_bgEl) return;
+  _bgEl.currentTime = 0;
+  _bgEl.play().catch(()=>{});
 }
-
 function bgStop() {
-  if (_bgSrc) {
-    try { _bgSrc.stop(); } catch(e){}
-    _bgSrc = null;
-  }
+  if (!_bgEl) return;
+  try { _bgEl.pause(); _bgEl.currentTime = 0; } catch(e){}
 }
 
+// ── Mute toggle ──
 function toggleMute() {
   _muted = !_muted;
   const btn = document.getElementById('mute-btn');
@@ -481,21 +484,21 @@ function toggleMute() {
     btn.textContent = '🔇';
     btn.classList.add('muted');
   } else {
+    bgPlay();
     btn.textContent = '🔊';
     btn.classList.remove('muted');
-    bgPlay();
   }
 }
 
-// Unlock audio on first touch/click
-function unlockOnGesture() {
-  if (_unlocked) return;
-  initAudio().then(() => {
-    // Don't auto-play bg here; let game start trigger it
-  });
+// ── Unlock on first gesture (iOS/Android requirement) ──
+function unlockAudio() {
+  // Resume suspended context (Chrome autoplay policy)
+  if (_ctx && _ctx.state === 'suspended') _ctx.resume().catch(()=>{});
+  // If not inited yet, init now
+  if (!_ctx && !_initing) initAudio();
 }
-document.addEventListener('touchstart', unlockOnGesture, {once:true, passive:true});
-document.addEventListener('click',      unlockOnGesture, {once:true, passive:true});
+document.addEventListener('touchstart', unlockAudio, {once:false, passive:true});
+document.addEventListener('click',      unlockAudio, {once:false, passive:true});
 
 /* ══════════════════════════════════════════════════════
    GAME STATE
@@ -635,7 +638,7 @@ async function prepareGame() {
   document.getElementById('cd-opp').textContent = oppName;
 
   // 6. Ensure audio is loaded (user has already touched screen to find a game)
-  if (!_unlocked) await initAudio();
+  if (!_ready) await initAudio();  // ensure SFX loaded before countdown beeps
 
   // 7. Start BG music
   bgPlay();

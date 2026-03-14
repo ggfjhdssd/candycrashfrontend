@@ -1,16 +1,16 @@
 {
-  "name": "candycrushfrontend",
+  "name": "candycrashfrontend",
   "version": "1.0.0",
   "description": "Candy Crush Match-3 Multiplayer Game Frontend",
   "main": "index.html",
   "scripts": {
-    "start": "serve .",
-    "dev": "serve .",
+    "start": "serve . --cors",
+    "dev":   "serve . --cors",
     "build": "echo 'No build required'"
   },
   "dependencies": {
     "serve": "^14.2.1"
   },
-  "keywords": ["telegram-mini-app", "candy-crush", "match3", "multiplayer"],
+  "keywords": ["telegram-mini-app","candy-crush","match3","multiplayer"],
   "license": "MIT"
 }

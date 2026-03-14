@@ -2,28 +2,54 @@
   "name": "candycrashfrontend",
   "version": 2,
   "builds": [
-    { "src": "/*.html", "use": "@vercel/static" },
-    { "src": "assets/**", "use": "@vercel/static" }
+    { "src": "/*.html",    "use": "@vercel/static" },
+    { "src": "assets/**",  "use": "@vercel/static" },
+    { "src": "audio/**",   "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/play", "dest": "/play.html" },
-    { "src": "/play.html", "dest": "/play.html" },
-    { "src": "/admin", "dest": "/admin.html" },
-    { "src": "/admin.html", "dest": "/admin.html" },
-    { "src": "/agent", "dest": "/agent.html" },
-    { "src": "/agent.html", "dest": "/agent.html" },
-    { "src": "/assets/(.*)", "dest": "/assets/$1" }
+    { "src": "/",           "dest": "/index.html"  },
+    { "src": "/play",       "dest": "/play.html"   },
+    { "src": "/play.html",  "dest": "/play.html"   },
+    { "src": "/admin",      "dest": "/admin.html"  },
+    { "src": "/admin.html", "dest": "/admin.html"  },
+    { "src": "/agent",      "dest": "/agent.html"  },
+    { "src": "/agent.html", "dest": "/agent.html"  },
+    { "src": "/assets/(.*)", "dest": "/assets/$1"  },
+    { "src": "/audio/(.*)", "dest": "/audio/$1"    }
   ],
   "headers": [
     {
+      "source": "/audio/(.*)\\.ogg",
+      "headers": [
+        { "key": "Content-Type",              "value": "audio/ogg" },
+        { "key": "Cache-Control",             "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin","value": "*" }
+      ]
+    },
+    {
+      "source": "/audio/(.*)\\.mp3",
+      "headers": [
+        { "key": "Content-Type",              "value": "audio/mpeg" },
+        { "key": "Cache-Control",             "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin","value": "*" }
+      ]
+    },
+    {
+      "source": "/audio/(.*)\\.wav",
+      "headers": [
+        { "key": "Content-Type",              "value": "audio/wav" },
+        { "key": "Cache-Control",             "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin","value": "*" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Origin",  "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' https://*.telegram.org https://candycrashbackend.onrender.com https://cdn.socket.io https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.telegram.org https://cdn.socket.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://candycrashbackend.onrender.com wss://candycrashbackend.onrender.com;"
+          "value": "default-src 'self' https://*.telegram.org https://candycrashbackend.onrender.com https://cdn.socket.io https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.telegram.org https://cdn.socket.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; media-src 'self' blob: data:; connect-src 'self' https://candycrashbackend.onrender.com wss://candycrashbackend.onrender.com;"
         }
       ]
     }
