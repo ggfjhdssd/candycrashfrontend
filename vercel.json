@@ -1,65 +1,29 @@
 {
-  "name": "candycrushfrontend",
+  "name": "candycrashfrontend",
   "version": 2,
   "builds": [
-    {
-      "src": "/*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**",
-      "use": "@vercel/static"
-    }
+    { "src": "/*.html", "use": "@vercel/static" },
+    { "src": "assets/**", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/",
-      "dest": "/index.html"
-    },
-    {
-      "src": "/play",
-      "dest": "/play.html"
-    },
-    {
-      "src": "/play.html",
-      "dest": "/play.html"
-    },
-    {
-      "src": "/admin",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/admin.html",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/agent",
-      "dest": "/agent.html"
-    },
-    {
-      "src": "/agent.html",
-      "dest": "/agent.html"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    }
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/play", "dest": "/play.html" },
+    { "src": "/play.html", "dest": "/play.html" },
+    { "src": "/admin", "dest": "/admin.html" },
+    { "src": "/admin.html", "dest": "/admin.html" },
+    { "src": "/agent", "dest": "/agent.html" },
+    { "src": "/agent.html", "dest": "/agent.html" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self' https://*.telegram.org https://*.render.com https://cdn.socket.io https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.telegram.org https://cdn.socket.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://*.render.com https://candycrushbackend.onrender.com wss://candycrushbackend.onrender.com;"
+          "value": "default-src 'self' https://*.telegram.org https://candycrashbackend.onrender.com https://cdn.socket.io https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.telegram.org https://cdn.socket.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https://candycrashbackend.onrender.com wss://candycrashbackend.onrender.com;"
         }
       ]
     }
