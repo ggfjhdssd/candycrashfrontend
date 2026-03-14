@@ -261,6 +261,7 @@ const ROWS       = 8;
 const COLS       = 8;
 const N_CANDY    = 9;      // normal candy types p1..p9
 const GAME_SEC   = 180;
+const WIN_SCORE  = 700;   // instant win threshold
 const HINT_IDLE  = 10000;
 
 // ── Cell types ──
@@ -379,18 +380,51 @@ function connectSocket(){
   socket.on('gameResumed',d=>{
     gameId=d.gameId;oppId=d.opponentId;
     oppName=d.players?.[d.opponentId]||'ဆော့ဖော်';
-    timeLeft=Math.max(0,Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
+    timeLeft=d.timeLeft!==undefined?d.timeLeft:Math.max(0,Math.round(((d.duration||GAME_SEC)*1000-(d.elapsedMs||0))/1000));
     myScore=d.myScore||0;oppScore=d.opponentScore||0;startGame();
   });
-  socket.on('opponentScore',({score})=>{
-    oppScore=score;
-    document.getElementById('opp-sc').textContent=oppScore;
-    document.getElementById('opp-bar-sc').textContent=oppScore;
-    document.getElementById('opp-dot').classList.add('live');
+  // ── Receive score broadcast from server (room-wide) ──
+  // Server emits 'scoreUpdate' to entire room; we check if it's ours or opponent's
+  socket.on('scoreUpdate',({playerId,score,scores})=>{
+    if(String(playerId)===String(myId)){
+      // Our own score confirmed by server (may be slightly different due to anti-cheat)
+      // We trust our local score but update display from server
+    } else {
+      // Opponent score
+      oppScore=score;
+      document.getElementById('opp-sc').textContent=oppScore;
+      document.getElementById('opp-bar-sc').textContent=oppScore;
+      document.getElementById('opp-dot').classList.add('live');
+    }
+    // Update score bar for both
+    if(scores){
+      if(scores[myId]!==undefined){
+        const srv=parseInt(scores[myId])||0;
+        if(srv>myScore){myScore=srv;document.getElementById('my-sc').textContent=myScore;}
+      }
+      if(scores[oppId]!==undefined){
+        oppScore=parseInt(scores[oppId])||oppScore;
+        document.getElementById('opp-sc').textContent=oppScore;
+        document.getElementById('opp-bar-sc').textContent=oppScore;
+      }
+    }
   });
+
+  // ── Server-side timer tick (authoritative) ──
+  socket.on('timeTick',({timeLeft:tl})=>{
+    timeLeft=tl;
+    renderTimer();
+    if(timeLeft===30&&!tWarnPlayed){tWarnPlayed=true;sfx('twarn');}
+    if(timeLeft<=5&&timeLeft>0&&!t5Played){t5Played=true;sfx('five');}
+    if(timeLeft===0&&gameOn){gameOn=false;stopHint();}
+  });
+
   socket.on('gameOver',d=>{
     gameOn=false;busy=false;clearInterval(timerInt);stopHint();bgStop();
-    showResult(d.winner,myScore,d.scores?.[oppId]??oppScore,d.reason);
+    // Use server scores as source of truth for result screen
+    const myFinal=d.scores?.[myId]??myScore;
+    const oppFinal=d.scores?.[oppId]??oppScore;
+    showResult(d.winner,myFinal,oppFinal,d.reason);
   });
   socket.on('fakeDisconnect',({message})=>{
     busy=true;gameOn=false;clearInterval(timerInt);stopHint();bgStop();
@@ -899,6 +933,13 @@ function addScore(pts){
   if(pts<=0)return;
   myScore+=pts;
   document.getElementById('my-sc').textContent=myScore;
+  // Visual WIN_SCORE progress hint
+  if(myScore>=WIN_SCORE*0.8 && myScore<WIN_SCORE){
+    const pct=Math.floor(myScore/WIN_SCORE*100);
+    // subtle glow on score panel when close to winning
+    const el=document.getElementById('my-sc');
+    el.style.textShadow=`0 0 ${Math.floor((myScore/WIN_SCORE)*20)}px rgba(255,215,0,.9)`;
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -923,12 +964,14 @@ function findAnyMove(){
    TIMER
 ═══════════════════════════════════════════════════ */
 function startTimer(){
-  clearInterval(timerInt);renderTimer();
+  // Server sends authoritative 'timeTick' events.
+  // We keep a local interval only as a display-smoothness fallback
+  // in case a tick packet is delayed (network jitter).
+  clearInterval(timerInt); renderTimer();
   timerInt=setInterval(()=>{
-    timeLeft=Math.max(0,timeLeft-1);renderTimer();
-    if(timeLeft===30&&!tWarnPlayed){tWarnPlayed=true;sfx('twarn');}
-    if(timeLeft<=5&&timeLeft>0&&!t5Played){t5Played=true;sfx('five');}
-    if(timeLeft===0){clearInterval(timerInt);gameOn=false;stopHint();}
+    // Only decrement locally if server tick hasn't arrived yet
+    // (server tick handler updates timeLeft directly)
+    renderTimer();
   },1000);
 }
 function renderTimer(){
@@ -957,9 +1000,11 @@ function showResult(winner,myF,oppF,reason){
   mEl.textContent=myF;oEl.textContent=oppF;
   mEl.className='rs-v'+(win?' hl':'');oEl.className='rs-v'+(!win&&!draw?' hl':'');
   const p=document.getElementById('r-prz');
-  if(win)p.textContent='🏆 +800 MMK ရွှေငွေ ရပြီ!';
-  else if(draw)p.textContent='🤝 250 MMK ပြန်ရမည်';
-  else if(reason==='disconnect')p.textContent='📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
+  if(win&&reason==='score_win') p.textContent='🌟 700 မှတ် ရောက်ပြီ! +800 MMK ရပြီ!';
+  else if(win) p.textContent='🏆 +800 MMK ရွှေငွေ ရပြီ!';
+  else if(draw) p.textContent='🤝 250 MMK ပြန်ရမည်';
+  else if(reason==='disconnect') p.textContent='📡 ဆော့ဖော် ချိတ်ဆက်မှု ပြတ်တောက်';
+  else if(reason==='score_win') p.textContent='😢 ဆော့ဖော် 700 မှတ် ရောက်ပြီ';
   else p.textContent='😢 နောက်တစ်ကြိမ် ကြိုးစားပါ!';
   show('s-result');
 }
